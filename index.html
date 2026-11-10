@@ -94,8 +94,11 @@ select,input[type=text]{width:100%;font:inherit;color:var(--fg);background:var(-
 .ps-row .u{justify-content:center;text-align:center;font-size:8.2px;line-height:1.15;letter-spacing:-.02em;white-space:nowrap}
 .ps-row .p{justify-content:flex-end;padding-right:3px;font-size:13px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
 .ps-row .p.t{font-size:11px;justify-content:center;padding-right:0}
-.ps-row .p em{font-style:normal;font-size:7px;font-weight:700;margin-right:2px}
-.ps-row .p em.up{color:#d42a2a} .ps-row .p em.down{color:#1e5bd0}
+.ps.wchg .ps-sub,.ps.wchg .ps-row{grid-template-columns:50% 17% 20% 13%}
+.ps-row .c{justify-content:center;font-size:8.6px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;white-space:nowrap}
+.ps-row .c.up{color:#d42a2a} .ps-row .c.down{color:#1e5bd0} .ps-row .c.same{color:#9aa49a} .ps-row .c.new{color:#1f7a22}
+.ps-legend{position:absolute;right:120px;bottom:2px;font-size:8.5px;color:#555}
+.ps-legend b{font-weight:700} .ps-legend .u{color:#d42a2a} .ps-legend .d{color:#1e5bd0}
 
 /* ================= 거래처 상세 (A4) ================= */
 .dp{--g:#1f7a22;--g2:#e7f2e5;--sub:#5b665b;--rule:#c9d6c6;width:794px;height:1123px;padding:30px 30px 26px;display:flex;flex-direction:column}
@@ -167,8 +170,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
       </div>
 
       <div class="group">
-        <span class="glabel">3. 등락 표시 (선택)</span>
-        <label class="check"><input type="checkbox" id="showChg"> 직전 대비 ▲▼ 표시</label>
+        <span class="glabel">3. 등락 표시</span>
+        <label class="check"><input type="checkbox" id="showChg" checked> 직전 대비 ▲▼ 표시</label>
         <select id="basis" aria-label="등락 비교 기준"></select>
         <div class="stats" id="stats"></div>
       </div>
@@ -310,7 +313,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
     return items.map(it => {
       const now = priceValue(it.priceRaw);
       let prev = it.prevRaw !== undefined ? priceValue(it.prevRaw) : undefined;
-      if (prev === undefined) { const k = norm(it.name); prev = baseline && k in baseline ? baseline[k] : undefined; }
+      if (prev === undefined && baseline) { const k1 = norm(it.name + '|' + (it.unit || '')), k2 = norm(it.name); prev = k1 in baseline ? baseline[k1] : (k2 in baseline ? baseline[k2] : undefined); }
       let change = null, state = 'none';
       if (prev === undefined) state = baseline && Object.keys(baseline).length ? 'new' : 'none';
       else if (now != null && prev != null) { change = Math.round(now - prev); state = change > 0 ? 'up' : change < 0 ? 'down' : 'same'; }
@@ -376,8 +379,10 @@ const store = {
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
 };
 
-const S = { source:'example', sheets:[], raw: exampleItems, hasPrev:false, mode:'grid', showChg:false, basis:'saved', dateLabel:'11월 09일 기준', client:'' };
-const confirmedBase = () => store.get('km.confirmed', null) || {label:'없음', map:{}};
+const S = { source:'example', sheets:[], raw: exampleItems, hasPrev:false, mode:'grid', showChg:true, basis:'saved', dateLabel:'11월 09일 기준', client:'' };
+const EX_PREV_DIFF = {'적상추 (특)':32000,'봉지깻잎':42000,'미나리':38000,'근대':30000,'팽이버섯':10000,'양송이버섯':26000,'계란 (대)':5000,'박스무':14000,'청양고추 (특)|10kg / box':45000,'애호박 (특)':38000,'청오이 (특)':43000,'사과':55000,'방울토마토 (1번)':32000};
+const EX_BASE = {label:'예시 직전 단가', map: Object.fromEntries(exampleItems.map(i => { const k = i.name + '|' + i.unit, d = EX_PREV_DIFF[k] != null ? EX_PREV_DIFF[k] : EX_PREV_DIFF[i.name]; return [P.norm(k), d != null ? d : P.priceValue(i.priceRaw)]; }))};
+const confirmedBase = () => store.get('km.confirmed', null) || (S.source === 'example' ? EX_BASE : {label:'확정본 없음', map:{}});
 
 function computeItems(){
   let raw = S.raw;
@@ -427,26 +432,31 @@ const exBadge = () => S.source === 'example' ? '<span class="ex">예시 데이�
 const isNum = p => /^[\d,]+$/.test(p);
 
 function priceCell(it){
-  let mark = '';
-  if (S.showChg && it.state === 'up') mark = `<em class="up">▲${won(it.change)}</em>`;
-  if (S.showChg && it.state === 'down') mark = `<em class="down">▼${won(it.change)}</em>`;
-  return `<span class="p${isNum(it.price) ? '' : ' t'}">${mark}${esc(it.price)}</span>`;
+  return `<span class="p${isNum(it.price) ? '' : ' t'}">${esc(it.price)}</span>`;
+}
+function chgSpan(it){
+  if (!S.showChg) return '';
+  if (it.state === 'up') return `<span class="c up">▲${won(it.change)}</span>`;
+  if (it.state === 'down') return `<span class="c down">▼${won(it.change)}</span>`;
+  if (it.state === 'new') return `<span class="c new">NEW</span>`;
+  return `<span class="c same">-</span>`;
 }
 
 function renderGrid(items){
   const cols = layoutColumns(items);
   const colHtml = cols.map(cats => `<div class="ps-col">${cats.map(c => `
       <div class="ps-cat">${esc(c.name)}</div>
-      <div class="ps-sub"><span>품목</span><span>단위</span><span>단가(원)</span></div>
-      ${c.items.map(it => `<div class="ps-row" style="flex-grow:${rowWeight(it)}"><span class="n">${nameLines(it.name).map(esc).join('<br>')}</span><span class="u">${esc(it.unit)}</span>${priceCell(it)}</div>`).join('')}`).join('')}
+      <div class="ps-sub"><span>품목</span><span>단위</span><span>단가(원)</span>${S.showChg ? '<span>등락</span>' : ''}</div>
+      ${c.items.map(it => `<div class="ps-row" style="flex-grow:${rowWeight(it)}"><span class="n">${nameLines(it.name).map(esc).join('<br>')}</span><span class="u">${esc(it.unit)}</span>${priceCell(it)}${chgSpan(it)}</div>`).join('')}`).join('')}
     </div>`).join('');
-  return `<div class="page ps">${exBadge()}
+  return `<div class="page ps${S.showChg ? ' wchg' : ''}">${exBadge()}
     <div class="ps-head">
       <img class="ps-logo" src="${LOGO}" alt="">
       <div class="ps-brand"><b>KITCHEN MATE</b><i>FRESH VEGETABLE</i><small>${esc(INFO.market)}<br>${esc(INFO.stall)}</small></div>
       <div class="ps-info"><strong>${esc(INFO.delivery)}</strong><span>${esc(INFO.tagline)}</span><span>주소 : ${esc(INFO.address)}</span>
         <div class="tel">${INFO.tels.map(t => `☎ <u>${esc(t)}</u>`).join('&nbsp; ')}</div></div>
       <div class="ps-qr"><div class="box">${QR_SVG}</div><span>QR로 바로가기</span></div>
+      ${S.showChg ? `<div class="ps-legend">등락: ${esc(basisLabel())} 대비 &nbsp;<b class="u">▲ 상승</b> &nbsp;<b class="d">▼ 하락</b></div>` : ''}
       <div class="ps-date">${esc(S.dateLabel)}</div>
     </div>
     <div class="ps-grid">${colHtml}</div>
