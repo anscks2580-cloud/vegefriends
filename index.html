@@ -14,6 +14,7 @@
   --radius:10px;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:14px;line-height:1.5}
 .wrap{max-width:1400px;margin:0 auto;padding:20px 16px 48px}
 .top{margin-bottom:16px}
@@ -56,6 +57,29 @@ select,input[type=text]{width:100%;font:inherit;color:var(--fg);background:var(-
 .stage{overflow:hidden}
 .pages{transform-origin:top left;display:flex;flex-direction:column;gap:16px;width:max-content}
 #capture{position:fixed;left:-20000px;top:0}
+.tabs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tabs .seg{width:auto;grid-template-columns:auto auto}
+.tabs .seg button{padding:8px 16px}
+.etools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:auto}
+.sbtn{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:8px;padding:7px 11px;cursor:pointer}
+.sbtn.acc{border-color:var(--accent);color:var(--accent)}
+.editor{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:auto;max-height:calc(100vh - 140px)}
+table.et{width:100%;border-collapse:collapse;font-size:13px}
+.et th{position:sticky;top:0;background:#eef3ec;font-size:12px;font-weight:700;color:var(--muted);padding:8px 6px;text-align:left;z-index:1;border-bottom:1px solid var(--line)}
+.et td{border-bottom:1px solid var(--line);padding:3px 4px;vertical-align:middle}
+.et tr.cathead td{background:#f6faf4;font-weight:700;color:var(--accent);font-size:12px;padding:6px 8px}
+.et input,.et select{width:100%;font:inherit;font-size:13px;border:1px solid transparent;background:transparent;border-radius:6px;padding:6px 7px;color:var(--fg)}
+.et input:hover,.et select:hover{border-color:var(--line)}
+.et input:focus,.et select:focus{outline:none;border-color:var(--accent);background:#fff}
+.et input.pr{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.et input.edited{background:#fff6d6}
+.et td.cg{text-align:center;font-size:12px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.et td.cg.up{color:var(--up)} .et td.cg.down{color:var(--down)} .et td.cg.same{color:#a5aea4} .et td.cg.new{color:var(--accent)}
+.et td.act{white-space:nowrap;text-align:right}
+.et td.act button{font:inherit;font-size:12px;border:0;background:none;color:var(--muted);cursor:pointer;padding:4px 5px;border-radius:5px}
+.et td.act button:hover{background:var(--bg);color:var(--fg)}
+.et td.act button.del:hover{color:var(--up)}
+.et .prev{font-size:11px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:#fff;padding:10px 16px;border-radius:8px;font-weight:600;font-size:13px;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
 
 /* ================= 출력물 공통 ================= */
@@ -143,6 +167,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
           <span>또는 여기로 끌어다 놓기 · 엑셀/한셀 모두 가능</span>
         </label>
         <div class="file" id="fileName">지금은 11월 09일 단가표 예시를 보여주고 있어요.</div>
+        <button type="button" class="sbtn" id="loadLast">엑셀 없이 마지막 확정본 불러와서 고치기</button>
         <div id="msg" hidden></div>
       </div>
 
@@ -182,7 +207,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
           <button type="button" class="btn primary" id="pdfBtn">PDF 저장</button>
         </div>
         <p class="hint">카카오톡으로 보낼 때는 이미지, 출력할 때는 PDF가 편합니다.</p>
-        <button type="button" class="btn ghost" id="confirmBtn">이 단가로 확정 (다음 비교 기준)</button>
+        <button type="button" class="btn ghost" id="confirmBtn">이 단가로 확정</button>
+        <p class="hint">확정하면 이 단가가 저장되고, 다음 단가표의 등락 비교 기준이 됩니다.</p>
       </div>
 
       <div class="group">
@@ -192,8 +218,20 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
     </aside>
 
     <section class="preview" aria-label="단가표 미리보기">
+      <div class="tabs">
+        <div class="seg" role="group" aria-label="보기 전환">
+          <button type="button" id="tEdit" aria-pressed="true">표에서 수정</button>
+          <button type="button" id="tView" aria-pressed="false">단가표 보기</button>
+        </div>
+        <div class="etools" id="etools">
+          <span class="chip" id="editCount" hidden></span>
+          <button type="button" class="sbtn" id="addCat">+ 분류 추가</button>
+          <button type="button" class="sbtn acc" id="xlsxBtn">엑셀로 내려받기</button>
+        </div>
+      </div>
       <div class="pbar"><span id="pinfo"></span><span class="banner" id="banner"></span></div>
-      <div class="stage" id="stage"><div class="pages" id="pages"></div></div>
+      <div class="editor" id="editor"></div>
+      <div class="stage" id="stage" hidden><div class="pages" id="pages"></div></div>
     </section>
   </div>
 </div>
@@ -379,10 +417,15 @@ const store = {
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
 };
 
-const S = { source:'example', sheets:[], raw: exampleItems, hasPrev:false, mode:'grid', showChg:true, basis:'saved', dateLabel:'11월 09일 기준', client:'' };
+const S = { tab:'edit', source:'example', sheets:[], raw: exampleItems, hasPrev:false, mode:'grid', showChg:true, basis:'saved', dateLabel:'11월 09일 기준', client:'' };
 const EX_PREV_DIFF = {'적상추 (특)':32000,'봉지깻잎':42000,'미나리':38000,'근대':30000,'팽이버섯':10000,'양송이버섯':26000,'계란 (대)':5000,'박스무':14000,'청양고추 (특)|10kg / box':45000,'애호박 (특)':38000,'청오이 (특)':43000,'사과':55000,'방울토마토 (1번)':32000};
 const EX_BASE = {label:'예시 직전 단가', map: Object.fromEntries(exampleItems.map(i => { const k = i.name + '|' + i.unit, d = EX_PREV_DIFF[k] != null ? EX_PREV_DIFF[k] : EX_PREV_DIFF[i.name]; return [P.norm(k), d != null ? d : P.priceValue(i.priceRaw)]; }))};
-const confirmedBase = () => store.get('km.confirmed', null) || (S.source === 'example' ? EX_BASE : {label:'확정본 없음', map:{}});
+const records = () => store.get('km.records', []);
+function confirmedBase(){
+  const r = records().find(x => x.label !== S.dateLabel);
+  if (r) return r;
+  return S.source === 'example' ? EX_BASE : {label:'확정본 없음', map:{}};
+}
 
 function computeItems(){
   let raw = S.raw;
@@ -500,10 +543,11 @@ function renderBasisSelect(){
 function render(){
   const items = computeItems();
   window.__items = items;
-  $('pages').innerHTML = S.mode === 'grid' ? renderGrid(items) : renderDetail(items);
+  const shown = items.filter(i => String(i.name).trim());
+  $('pages').innerHTML = S.mode === 'grid' ? renderGrid(shown) : renderDetail(shown);
   const c = {up:0, down:0, new:0};
-  items.forEach(i => { if (c[i.state] != null) c[i.state]++; });
-  $('stats').innerHTML = `<span class="chip">품목 ${items.length}</span>` + (S.showChg ? `<span class="chip up">상승 ${c.up}</span><span class="chip down">하락 ${c.down}</span>` : '');
+  shown.forEach(i => { if (c[i.state] != null) c[i.state]++; });
+  $('stats').innerHTML = `<span class="chip">품목 ${shown.length}</span>` + (S.showChg ? `<span class="chip up">상승 ${c.up}</span><span class="chip down">하락 ${c.down}</span>` : '');
   $('pinfo').textContent = S.mode === 'grid' ? '공용 단가표 1장' : `거래처 상세 · A4 ${$('pages').children.length}장`;
   $('banner').textContent = S.source === 'example' ? '예시: 11월 09일 단가표를 그대로 옮긴 데이터입니다.' : '';
   $('mGrid').setAttribute('aria-pressed', S.mode === 'grid');
@@ -511,6 +555,12 @@ function render(){
   $('modeHint').textContent = S.mode === 'grid' ? '전체 거래처에 보내는 3단 단가표 (기존 양식)' : '선별 기준·원산지·비고까지 넣은 거래처별 A4 단가표';
   $('clientGroup').hidden = S.mode !== 'detail';
   $('basis').disabled = !S.showChg;
+  $('tEdit').setAttribute('aria-pressed', S.tab === 'edit');
+  $('tView').setAttribute('aria-pressed', S.tab === 'view');
+  $('editor').hidden = S.tab !== 'edit'; $('stage').hidden = S.tab !== 'view'; $('etools').hidden = S.tab !== 'edit';
+  if (S.tab === 'edit' && !S.skipEditor) renderEditor(items);
+  else if (S.tab === 'edit') updateEditorChanges(items);
+  S.skipEditor = false;
   fit();
 }
 function fit(){
@@ -523,8 +573,9 @@ function fit(){
 addEventListener('resize', fit);
 
 function renderHistory(){
-  const h = store.get('km.history', []);
-  $('hist').innerHTML = h.length ? h.slice(0, 6).map(x => `<li><span>${esc(x.label)}</span><span>${esc(x.count)}개 품목</span></li>`).join('') : '<li><span>아직 확정한 단가가 없어요.</span></li>';
+  const h = records();
+  $('hist').innerHTML = h.length ? h.slice(0, 8).map(x => `<li><span>${esc(x.label)}</span><span>${esc(x.count)}개 품목</span></li>`).join('') : '<li><span>아직 확정한 단가가 없어요.</span></li>';
+  $('loadLast').hidden = !h.length;
 }
 function showMsg(text, err){ const m = $('msg'); m.hidden = false; m.className = 'msg' + (err ? ' err' : ''); m.textContent = text; }
 let tt; function toast(t){ const el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(tt); tt = setTimeout(() => el.hidden = true, 3200); }
@@ -551,13 +602,14 @@ async function handleFile(f){
 }
 function useSheet(i){
   const s = S.sheets[i];
-  S.raw = s.items; S.hasPrev = s.hasPrev;
+  S.raw = s.items.map(it => Object.assign({}, it, {orig: String(it.priceRaw)})); S.hasPrev = s.hasPrev;
   S.basis = s.hasPrev ? 'excel' : 'saved';
   S.mode = s.detailed ? 'detail' : 'grid';
   if (s.client) S.client = s.client;
   S.dateLabel = fmtDateLabel(s.date || new Date());
   $('dateLabel').value = S.dateLabel; $('client').value = S.client;
-  renderBasisSelect(); render();
+  S.tab = 'edit'; saveDraft();
+  renderBasisSelect(); renderHistory(); render();
 }
 
 $('file').addEventListener('change', e => handleFile(e.target.files[0]));
@@ -568,18 +620,138 @@ drop.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
 $('sheet').addEventListener('change', e => useSheet(+e.target.value));
 $('mGrid').onclick = () => { S.mode = 'grid'; render(); };
 $('mDetail').onclick = () => { S.mode = 'detail'; render(); };
-$('dateLabel').addEventListener('input', e => { S.dateLabel = e.target.value; render(); });
+$('dateLabel').addEventListener('input', e => { S.dateLabel = e.target.value; saveDraft(); renderBasisSelect(); render(); });
 $('client').addEventListener('input', e => { S.client = e.target.value; render(); });
 $('showChg').addEventListener('change', e => { S.showChg = e.target.checked; render(); });
 $('basis').addEventListener('change', e => { S.basis = e.target.value; render(); });
 
 $('confirmBtn').onclick = () => {
-  const items = window.__items || [];
-  const rec = {label: S.dateLabel, map: Object.fromEntries(items.map(i => [P.norm(i.name + '|' + i.unit), i.now]).concat(items.map(i => [P.norm(i.name), i.now]))), count: items.length, at: Date.now()};
-  const ok = store.set('km.confirmed', rec);
-  const h = store.get('km.history', []); h.unshift({label: rec.label, count: rec.count, at: rec.at}); store.set('km.history', h.slice(0, 20));
+  const items = (window.__items || []).filter(i => String(i.name).trim());
+  if (!items.length) { toast('확정할 품목이 없습니다.'); return; }
+  const base = confirmedBase().label;
+  const rec = {label: S.dateLabel, count: items.length, at: Date.now(),
+    map: Object.fromEntries(items.map(i => [P.norm(i.name), i.now]).concat(items.map(i => [P.norm(i.name + '|' + i.unit), i.now]))),
+    items: S.raw.filter(it => String(it.name).trim()).map(({col, cat, name, unit, priceRaw}) => ({col, cat, name, unit, priceRaw}))};
+  const h = records().filter(x => x.label !== rec.label); h.unshift(rec);
+  let ok = store.set('km.records', h.slice(0, 15));
+  if (!ok) ok = store.set('km.records', h.slice(0, 5));
+  S.raw = S.raw.filter(it => String(it.name).trim()).map(it => Object.assign({}, it, {orig: String(it.priceRaw)}));
+  S.source = 'confirmed'; saveDraft();
   renderHistory(); renderBasisSelect(); render();
-  toast(ok ? `${rec.label}으로 확정했습니다.` : '이 브라우저에서는 저장이 막혀 있어 확정을 기억하지 못합니다.');
+  toast(ok ? `${rec.label} 단가로 확정했습니다.` + (base === '확정본 없음' ? ' 다음 단가표부터 등락이 표시됩니다.' : ` 등락은 ${base} 단가와 비교됩니다.`) : '이 브라우저에서는 저장이 막혀 있어 확정을 기억하지 못합니다.');
+};
+
+/* ===== 편집표 ===== */
+const pv = v => { const n = P.priceValue(v); return n == null ? '' : n.toLocaleString('ko-KR'); };
+function renderEditor(items){
+  let html = '<table class="et"><thead><tr><th style="width:64px">단</th><th style="width:22%">분류</th><th>품목</th><th style="width:16%">단위</th><th style="width:110px">단가(원)</th><th style="width:80px">직전</th><th style="width:76px">등락</th><th style="width:118px"></th></tr></thead><tbody>';
+  let lastCat = null;
+  S.raw.forEach((it, i) => {
+    if (it.cat !== lastCat) { html += `<tr class="cathead"><td colspan="8">${esc(it.cat)}</td></tr>`; lastCat = it.cat; }
+    const x = items[i] || {};
+    const edited = it.orig != null && String(it.priceRaw) !== it.orig;
+    html += `<tr data-i="${i}">
+      <td><select data-k="col">${[1,2,3].map(n => `<option value="${n}"${+it.col === n ? ' selected' : ''}>${n}단</option>`).join('')}<option value="0"${!it.col ? ' selected' : ''}>자동</option></select></td>
+      <td><input data-k="cat" value="${esc(it.cat)}"></td>
+      <td><input data-k="name" value="${esc(String(it.name).replace(/\n/g, ' '))}"></td>
+      <td><input data-k="unit" value="${esc(it.unit)}"></td>
+      <td><input data-k="priceRaw" class="pr${edited ? ' edited' : ''}" inputmode="numeric" value="${esc(P.priceText(it.priceRaw) === '시세 문의' && (it.priceRaw === '' || it.priceRaw == null) ? '' : P.priceText(it.priceRaw))}"></td>
+      <td class="prev" data-prev>${x.prev != null ? Number(x.prev).toLocaleString('ko-KR') : ''}</td>
+      <td class="cg ${x.state || ''}" data-cg>${cgText(x)}</td>
+      <td class="act"><button type="button" data-a="up" title="위로">▲</button><button type="button" data-a="down" title="아래로">▼</button><button type="button" data-a="add" title="아래에 품목 추가">+추가</button><button type="button" class="del" data-a="del" title="삭제">삭제</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  $('editor').innerHTML = html;
+  updateEditCount();
+}
+function cgText(x){
+  if (x.state === 'up') return '▲' + won(x.change);
+  if (x.state === 'down') return '▼' + won(x.change);
+  if (x.state === 'new') return 'NEW';
+  if (x.state === 'same') return '-';
+  return '';
+}
+function updateEditorChanges(items){
+  $('editor').querySelectorAll('tr[data-i]').forEach(tr => {
+    const x = items[+tr.dataset.i] || {}, cg = tr.querySelector('[data-cg]');
+    cg.className = 'cg ' + (x.state || ''); cg.textContent = cgText(x);
+    tr.querySelector('[data-prev]').textContent = x.prev != null ? Number(x.prev).toLocaleString('ko-KR') : '';
+  });
+  updateEditCount();
+}
+function updateEditCount(){
+  const n = S.raw.filter(it => it.orig != null && String(it.priceRaw) !== it.orig).length;
+  $('editCount').hidden = !n; $('editCount').textContent = `수정 ${n}건`;
+}
+let rt;
+$('editor').addEventListener('input', e => {
+  const el = e.target, tr = el.closest('tr[data-i]'); if (!tr || !el.dataset.k) return;
+  const it = S.raw[+tr.dataset.i], k = el.dataset.k;
+  if (k === 'col') it.col = +el.value;
+  else if (k === 'priceRaw') { const v = el.value.trim(); it.priceRaw = /^[\d,]+$/.test(v) ? +v.replace(/,/g, '') : v; el.classList.toggle('edited', it.orig != null && String(it.priceRaw) !== it.orig); }
+  else it[k] = el.value;
+  saveDraft();
+  clearTimeout(rt);
+  rt = setTimeout(() => { S.skipEditor = true; render(); }, 150);
+});
+$('editor').addEventListener('change', e => {
+  if (e.target.dataset.k === 'cat' || e.target.dataset.k === 'col') { clearTimeout(rt); render(); return; }
+  if (e.target.dataset.k === 'priceRaw') { const it = S.raw[+e.target.closest('tr').dataset.i]; if (typeof it.priceRaw === 'number') e.target.value = it.priceRaw.toLocaleString('ko-KR'); }
+});
+$('editor').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.classList.contains('pr')) return;
+  e.preventDefault();
+  const all = [...$('editor').querySelectorAll('input.pr')], i = all.indexOf(e.target);
+  if (all[i + 1]) { all[i + 1].focus(); all[i + 1].select(); }
+});
+$('editor').addEventListener('click', e => {
+  const b = e.target.closest('button[data-a]'); if (!b) return;
+  const i = +b.closest('tr').dataset.i, a = b.dataset.a, r = S.raw;
+  if (a === 'up' && i > 0) [r[i - 1], r[i]] = [r[i], r[i - 1]];
+  if (a === 'down' && i < r.length - 1) [r[i + 1], r[i]] = [r[i], r[i + 1]];
+  if (a === 'add') r.splice(i + 1, 0, {col: r[i].col, cat: r[i].cat, name: '', unit: '', priceRaw: '', grade:'', origin:'', note:'', no:'', orig: ''});
+  if (a === 'del') { if (!confirm(`‘${r[i].name || '빈 품목'}’을(를) 지울까요?`)) return; r.splice(i, 1); }
+  saveDraft(); render();
+  if (a === 'add') { const tr = $('editor').querySelector(`tr[data-i="${i + 1}"] input[data-k="name"]`); if (tr) tr.focus(); }
+});
+$('addCat').onclick = () => {
+  const name = prompt('새 분류 이름을 입력해 주세요.'); if (!name) return;
+  S.raw.push({col: 3, cat: name.trim(), name: '', unit: '', priceRaw: '', grade:'', origin:'', note:'', no:'', orig: ''});
+  saveDraft(); render();
+  const last = $('editor').querySelector(`tr[data-i="${S.raw.length - 1}"] input[data-k="name"]`); if (last) { last.scrollIntoView({block:'center'}); last.focus(); }
+};
+$('tEdit').onclick = () => { S.tab = 'edit'; render(); };
+$('tView').onclick = () => { S.tab = 'view'; render(); };
+
+/* ===== 작업 중인 표 자동 보관 (새로고침해도 유지) ===== */
+function saveDraft(){ if (S.source === 'example') return; store.set('km.draft', {raw: S.raw, dateLabel: S.dateLabel, source: S.source, at: Date.now()}); }
+function loadDraft(){
+  const d = store.get('km.draft', null); if (!d || !d.raw || !d.raw.length) return false;
+  S.raw = d.raw; S.dateLabel = d.dateLabel || S.dateLabel; S.source = d.source || 'draft';
+  $('fileName').textContent = '작업하던 단가표를 이어서 보여주고 있어요.';
+  return true;
+}
+$('loadLast').onclick = () => {
+  const r = records()[0]; if (!r || !r.items) { toast('불러올 확정본이 없습니다.'); return; }
+  S.raw = r.items.map(it => Object.assign({grade:'', origin:'', note:'', no:''}, it, {orig: String(it.priceRaw)}));
+  S.source = 'confirmed'; S.hasPrev = false; S.basis = 'saved'; S.mode = 'grid'; S.tab = 'edit';
+  S.dateLabel = fmtDateLabel(new Date()); $('dateLabel').value = S.dateLabel;
+  $('fileName').textContent = `${r.label} 확정본을 불러왔어요. 바뀐 단가만 고치면 됩니다.`;
+  saveDraft(); renderBasisSelect(); renderHistory(); render();
+};
+
+/* ===== 엑셀로 내려받기 (입력 양식과 같은 모양) ===== */
+$('xlsxBtn').onclick = () => {
+  const m = S.dateLabel.match(/(\d+)월\s*(\d+)일/), y = new Date().getFullYear();
+  const dateStr = m ? `${y}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}` : '';
+  const aoa = [['키친메이트 당일 단가 입력'], ['', '기준일', dateStr], ['단', '분류', '품목', '단위', '단가', '비고']]
+    .concat(S.raw.map(it => [it.col || '', it.cat, String(it.name).replace(/\n/g, ' '), it.unit, typeof it.priceRaw === 'number' ? it.priceRaw : (P.priceValue(it.priceRaw) ?? it.priceRaw ?? ''), it.note || '']));
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:5}, {wch:26}, {wch:20}, {wch:14}, {wch:10}, {wch:16}];
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, '단가입력');
+  const out = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  saveFile(`키친메이트-단가입력-${S.dateLabel.replace(/\s|기준/g,'')}.xlsx`, new Blob([out], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
 };
 
 /* ===== 저장 (이미지 / PDF) ===== */
@@ -622,6 +794,8 @@ async function saveFile(name, blob){
   setTimeout(() => URL.revokeObjectURL(url), 4000); toast(name + ' 저장 완료');
 }
 
+(function migrate(){ const old = store.get('km.confirmed', null); if (old && !records().length && old.map) store.set('km.records', [old]); })();
+loadDraft();
 $('dateLabel').value = S.dateLabel;
 renderBasisSelect(); renderHistory(); render();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
