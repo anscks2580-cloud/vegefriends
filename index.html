@@ -57,6 +57,15 @@ select,input[type=text]{width:100%;font:inherit;color:var(--fg);background:var(-
 .stage{overflow:hidden}
 .pages{transform-origin:top left;display:flex;flex-direction:column;gap:16px;width:max-content}
 #capture{position:fixed;left:-20000px;top:0}
+.btn.site{background:#123f33;border-color:#123f33;color:#fff}
+dialog.imp{border:0;border-radius:14px;padding:22px 22px 18px;max-width:560px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(0,0,0,.25);font-family:var(--ui);color:var(--fg)}
+dialog.imp::backdrop{background:rgba(10,20,12,.45)}
+dialog.imp h3{margin:0 0 4px;font-size:18px}
+dialog.imp ol{margin:10px 0 0;padding-left:20px;line-height:1.7;font-size:14px}
+dialog.imp .bm{display:inline-block;margin:6px 0;padding:8px 14px;border-radius:99px;background:#123f33;color:#fff;font-weight:700;text-decoration:none;cursor:grab}
+dialog.imp textarea{width:100%;height:90px;font:inherit;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:6px}
+dialog.imp .or{margin:16px 0 4px;padding-top:12px;border-top:1px dashed var(--line);font-size:13px;font-weight:700;color:var(--muted)}
+dialog.imp .row2{margin-top:10px}
 .tabs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .tabs .seg{width:auto;grid-template-columns:auto auto}
 .tabs .seg button{padding:8px 16px}
@@ -167,7 +176,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
           <span>또는 여기로 끌어다 놓기 · 엑셀/한셀 모두 가능</span>
         </label>
         <div class="file" id="fileName">지금은 11월 09일 단가표 예시를 보여주고 있어요.</div>
-        <button type="button" class="sbtn" id="loadLast">엑셀 없이 마지막 확정본 불러와서 고치기</button>
+        <button type="button" class="btn site" id="impBtn">관리자 페이지에 게시한 단가 가져오기</button>
+        <button type="button" class="sbtn" id="loadLast">마지막 확정본 불러와서 고치기</button>
         <div id="msg" hidden></div>
       </div>
 
@@ -235,6 +245,22 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
     </section>
   </div>
 </div>
+<dialog class="imp" id="impDlg">
+  <h3>게시한 단가 가져오기</h3>
+  <p class="hint">관리자 페이지에서 단가를 고치고 ‘단가표 저장 및 게시’를 누른 다음 가져오면 됩니다.</p>
+  <ol>
+    <li>아래 초록 버튼을 브라우저 <b>즐겨찾기(북마크) 막대로 끌어다 놓아</b> 주세요. (처음 한 번만)<br>
+      <a class="bm" id="bmLink" href="javascript:(function(){fetch('/api/price-table').then(function(r){return r.json()}).then(function(j){location.href='https://anscks2580-cloud.github.io/vegefriends/#data='+encodeURIComponent(JSON.stringify(j))}).catch(function(){alert('키친메이트 단가표 사이트(market247)에서 눌러 주세요.')})})()">키친메이트 단가 가져오기</a></li>
+    <li>키친메이트 관리자 페이지나 고객 화면에서 그 즐겨찾기를 누르면, 게시된 단가가 담긴 채로 이 화면이 열립니다.</li>
+  </ol>
+  <p class="or">즐겨찾기가 어려우면 — 복사해서 붙여넣기</p>
+  <ol>
+    <li><a href="https://market247.duckdns.org:8444/api/price-table" target="_blank" rel="noopener">이 주소</a>를 열고 전체 선택(Ctrl+A) 후 복사(Ctrl+C)</li>
+    <li>아래 칸에 붙여넣기(Ctrl+V)</li>
+  </ol>
+  <textarea id="impText" placeholder='{"dateLabel":"11월 10일 기준","columns":[...]}'></textarea>
+  <div class="row2"><button type="button" class="btn ghost" id="impClose">닫기</button><button type="button" class="btn primary" id="impGo">붙여넣은 단가 불러오기</button></div>
+</dialog>
 <div id="capture" aria-hidden="true"></div>
 <div class="toast" id="toast" hidden></div>
 
@@ -741,6 +767,42 @@ $('loadLast').onclick = () => {
   saveDraft(); renderBasisSelect(); renderHistory(); render();
 };
 
+/* ===== 관리자 페이지(market247) 게시 단가 가져오기 ===== */
+function siteToItems(j){
+  const out = [];
+  (j.columns || []).forEach((c, ci) => (c.categories || []).forEach(cat => (cat.items || []).forEach(r => {
+    const name = String(r[0] || '').replace(/\s*\n\s*/g, '\n').trim(); if (!name) return;
+    const pr = String(r[2] == null ? '' : r[2]).trim();
+    out.push({col: ci + 1, cat: cat.name, name, unit: String(r[1] || '').trim(), priceRaw: /^[\d,]+$/.test(pr) ? +pr.replace(/,/g, '') : (pr === '시세 문의' ? '-' : pr), grade:'', origin:'', note:'', no:''});
+  })));
+  return out;
+}
+function useSiteData(j){
+  const items = siteToItems(j);
+  if (!items.length) { toast('단가를 찾지 못했습니다. 복사한 내용을 확인해 주세요.'); return false; }
+  S.raw = items.map(it => Object.assign(it, {orig: String(it.priceRaw)}));
+  S.source = 'site'; S.hasPrev = false; S.basis = 'saved'; S.mode = 'grid'; S.tab = 'view';
+  if (j.dateLabel) S.dateLabel = j.dateLabel;
+  $('dateLabel').value = S.dateLabel;
+  $('fileName').textContent = `관리자 페이지에 게시된 ${S.dateLabel} 단가 ${items.length}개를 가져왔어요.`;
+  saveDraft(); renderBasisSelect(); renderHistory(); render();
+  const done = records().some(r => r.label === S.dateLabel);
+  showMsg(done ? '이미 확정한 날짜입니다. 단가가 바뀌었으면 다시 확정해 주세요.' : '확인 후 ‘이 단가로 확정’을 누르고 이미지로 저장하세요.');
+  return true;
+}
+$('impBtn').onclick = () => $('impDlg').showModal();
+$('impClose').onclick = () => $('impDlg').close();
+$('bmLink').onclick = e => { e.preventDefault(); toast('누르지 말고 즐겨찾기 막대로 끌어다 놓아 주세요.'); };
+$('impGo').onclick = () => {
+  let j; try { j = JSON.parse($('impText').value.trim()); } catch (e) { toast('붙여넣은 내용을 읽지 못했습니다. 전체를 복사했는지 확인해 주세요.'); return; }
+  if (useSiteData(j)) { $('impDlg').close(); $('impText').value = ''; }
+};
+function readHashData(){
+  if (!location.hash.startsWith('#data=')) return false;
+  try { const j = JSON.parse(decodeURIComponent(location.hash.slice(6))); history.replaceState(null, '', location.pathname + location.search); return j; }
+  catch (e) { return false; }
+}
+
 /* ===== 엑셀로 내려받기 (입력 양식과 같은 모양) ===== */
 $('xlsxBtn').onclick = () => {
   const m = S.dateLabel.match(/(\d+)월\s*(\d+)일/), y = new Date().getFullYear();
@@ -795,9 +857,12 @@ async function saveFile(name, blob){
 }
 
 (function migrate(){ const old = store.get('km.confirmed', null); if (old && !records().length && old.map) store.set('km.records', [old]); })();
-loadDraft();
+const hashData = readHashData();
+if (!hashData) loadDraft();
 $('dateLabel').value = S.dateLabel;
 renderBasisSelect(); renderHistory(); render();
+if (hashData) useSiteData(hashData);
+addEventListener('hashchange', () => { const j = readHashData(); if (j) useSiteData(j); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 </script>
 </body>
