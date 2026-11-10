@@ -1,41 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>키친메이트 단가표 생성기</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700;800;900&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
-/* Layout: 왼쪽 작업 패널(업로드·옵션) + 오른쪽 A4 미리보기. 미리보기 종이는 출력물이라 항상 흰 바탕 고정. */
 :root{
   --bg:#f3f5f1; --panel:#ffffff; --fg:#1b241c; --muted:#5f6b60; --line:#dde3da;
-  --accent:#036d0d; --accent-soft:#e3f0e2; --accent-fg:#ffffff;
+  --accent:#1f7a22; --accent-soft:#e3f0e2; --accent-fg:#ffffff;
   --up:#d42a2a; --down:#1e5bd0; --warn:#9a6a00;
-  --ui:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-  --sheet:'Gothic A1','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --ui:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   --radius:10px;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#121712; --panel:#1a211a; --fg:#e6ece5; --muted:#9aa79a; --line:#2c372c;
-  --accent:#4cb556; --accent-soft:#1f3320; --accent-fg:#0d150d; --up:#ff6b6b; --down:#6fa0ff; --warn:#e0b44a; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#121712; --panel:#1a211a; --fg:#e6ece5; --muted:#9aa79a; --line:#2c372c;
-  --accent:#4cb556; --accent-soft:#1f3320; --accent-fg:#0d150d; --up:#ff6b6b; --down:#6fa0ff; --warn:#e0b44a; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:14px;line-height:1.5}
-.wrap{max-width:1360px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
-.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px;margin-bottom:16px}
-.top h1{margin:0;font-size:22px;letter-spacing:-.02em;text-wrap:balance}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:14px;line-height:1.5}
+.wrap{max-width:1400px;margin:0 auto;padding:20px 16px 48px}
+.top{margin-bottom:16px}
+.top h1{margin:0;font-size:22px;letter-spacing:-.02em}
 .top p{margin:2px 0 0;color:var(--muted)}
-.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:99px;margin-bottom:6px}
-.layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:20px;align-items:start}
+.layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:18px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:18px;position:sticky;top:12px}
 @media (max-width:900px){.panel{position:static}}
 .group{display:flex;flex-direction:column;gap:8px}
-.group>label,.glabel{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em}
-.drop{border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:var(--radius);padding:18px 14px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center}
+.group>label,.glabel{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.02em}
+.drop{position:relative;border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:var(--radius);padding:18px 14px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center}
 .drop strong{font-size:15px;color:var(--accent)}
 .drop span{font-size:12px;color:var(--muted)}
 .drop.over{outline:3px solid var(--accent)}
-.drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 .drop input{position:absolute;width:1px;height:1px;opacity:0}
 .file{font-size:12px;color:var(--muted);word-break:break-all}
 select,input[type=text]{width:100%;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
@@ -51,84 +44,90 @@ select,input[type=text]{width:100%;font:inherit;color:var(--fg);background:var(-
 .btn.primary{background:var(--accent);color:var(--accent-fg)}
 .btn.ghost{background:transparent;color:var(--accent)}
 .btn:disabled{opacity:.5;cursor:wait}
-.btn:focus-visible,.seg button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hint{font-size:12px;color:var(--muted);margin:0}
-.msg{font-size:13px;padding:9px 11px;border-radius:8px;background:var(--accent-soft);color:var(--fg)}
-.msg.err{background:color-mix(in srgb,var(--up) 14%,transparent)}
+.msg{font-size:13px;padding:9px 11px;border-radius:8px;background:var(--accent-soft)}
+.msg.err{background:#fbe3e3}
 .hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
 .hist li{display:flex;justify-content:space-between;gap:8px}
 .preview{min-width:0;display:flex;flex-direction:column;gap:12px}
 .pbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;color:var(--muted);font-size:12px}
-.banner{font-size:12px;font-weight:600;color:var(--warn)}
+.banner{font-weight:600;color:var(--warn)}
 .stage{overflow:hidden}
-.pages{transform-origin:top left;display:flex;flex-direction:column;gap:16px;width:794px}
+.pages{transform-origin:top left;display:flex;flex-direction:column;gap:16px;width:max-content}
+#capture{position:fixed;left:-20000px;top:0}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:#fff;padding:10px 16px;border-radius:8px;font-weight:600;font-size:13px;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
 
-/* ===== 출력용 A4 종이 (794×1123px) — 항상 흰 바탕 ===== */
-.page{--g:#036d0d;--g2:#e7f2e5;--ink:#141a14;--sub:#5b665b;--rule:#c9d6c6;--pu:#d42a2a;--pd:#1e5bd0;
-  width:794px;height:1123px;background:#fff;color:var(--ink);font-family:var(--sheet);padding:34px 30px 26px;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.08);position:relative;overflow:hidden}
-.sh{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-bottom:12px;border-bottom:3px solid var(--g)}
-.brand{display:flex;gap:12px;align-items:center}
-.mark{width:54px;height:54px;border-radius:50%;background:var(--g);color:#fff;display:grid;place-items:center;font-weight:900;font-size:19px;letter-spacing:-.04em}
-.brand b{display:block;font-size:27px;font-weight:900;color:var(--g);letter-spacing:-.01em;line-height:1}
-.brand i{display:block;font-style:normal;font-size:9.5px;font-weight:800;color:var(--g);letter-spacing:.18em;margin:3px 0 5px}
-.brand small{display:block;font-size:10px;color:var(--sub);line-height:1.45}
-.shr{text-align:right;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
-.dlabel{font-size:22px;font-weight:900;color:var(--ink);background:var(--g2);padding:2px 10px;border-radius:6px}
-.shr small{font-size:10.5px;color:var(--sub);font-weight:600}
-.shr .tel{font-size:12.5px;font-weight:800;color:var(--g)}
-.legend{display:flex;gap:10px;justify-content:flex-end;font-size:10px;color:var(--sub);margin:7px 0 6px;font-weight:600}
-.legend .u{color:var(--pu)} .legend .d{color:var(--pd)}
-.grid3{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:start;min-height:0}
-.cat{border:1px solid var(--rule);border-radius:5px;overflow:hidden;margin-bottom:8px}
-.cat h3{margin:0;background:var(--g);color:#fff;font-size:12.5px;font-weight:800;text-align:center;padding:4px 4px;letter-spacing:-.01em}
-.thead,.row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.95fr) minmax(0,.9fr) 40px;align-items:center}
-.page.nochg .thead,.page.nochg .row{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,.95fr)}
-.page.nochg .chg{display:none}
-.thead{background:var(--g2);font-size:9.5px;font-weight:700;color:var(--sub);text-align:center;padding:2px 0}
-.row{min-height:var(--rh,22px);border-top:1px solid #edf1ec;font-size:12px}
-.row>*{padding:1px 4px;min-width:0}
-.row .n{font-weight:700;white-space:pre-line;line-height:1.15;text-align:center}
-.row .u{font-size:9.5px;color:var(--sub);text-align:center;line-height:1.15}
-.row .p{font-weight:800;text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;line-height:1.15}
-.row .p.t{font-size:10px;font-weight:700;word-break:keep-all}
-.chg{font-size:9.5px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
-.chg.up{color:var(--pu)} .chg.down{color:var(--pd)} .chg.same{color:#a5aea4} .chg.new{color:var(--g)}
-.row.up{background:#fff6f5} .row.down{background:#f4f7ff}
-.page.nochg .row.up,.page.nochg .row.down{background:none}
-.sf{margin-top:auto;padding-top:8px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;gap:12px;font-size:10px;color:var(--sub);font-weight:600}
-/* 상세(거래처용) */
+/* ================= 출력물 공통 ================= */
+.page{background:#fff;color:#111;font-family:'Pretendard','Malgun Gothic',sans-serif;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.08)}
+.ex{position:absolute;top:4px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:#9a6a00;background:#fff4d6;padding:1px 10px;border-radius:99px;z-index:3}
+
+/* ================= 단가표 (사진 양식) 873×1000 ================= */
+.ps{--g:#1f7a22;--cat:#dcebd3;--ln:#2b2b2b;width:873px;height:1000px;padding:0;display:flex;flex-direction:column}
+.ps-head{position:relative;height:92px;flex:none}
+.ps-logo{position:absolute;left:17px;top:24px;width:52px}
+.ps-brand{position:absolute;left:90px;top:8px}
+.ps-brand b{display:block;font-family:'Roboto','Pretendard',sans-serif;font-size:27px;font-weight:600;color:var(--g);letter-spacing:-.025em;line-height:1.1}
+.ps-brand i{display:block;font-style:normal;font-size:8px;font-weight:600;color:var(--g);letter-spacing:.02em;margin-top:3px}
+.ps-brand small{display:block;font-size:8px;color:#333;line-height:1.5;margin-top:6px}
+.ps-info{position:absolute;left:470px;width:300px;top:13px;text-align:center;color:#222}
+.ps-info strong{display:block;font-size:11.5px;font-weight:600;letter-spacing:-.01em}
+.ps-info span{display:block;font-size:8.2px;line-height:1.45}
+.ps-info .tel{margin-top:4px;font-size:10px;font-weight:600;color:var(--g)}
+.ps-info .tel u{text-underline-offset:2px}
+.ps-qr{position:absolute;right:8px;top:12px;width:45px;text-align:center}
+.ps-qr .box{border:1.2px solid #2e9e3e;border-radius:5px;padding:3px;background:#fff}
+.ps-qr svg{display:block;width:100%;height:auto}
+.ps-qr span{display:block;font-size:6.5px;color:var(--g);font-weight:600;margin-top:3px;white-space:nowrap}
+.ps-date{position:absolute;right:3px;bottom:2px;font-size:11px;font-weight:500;color:#111}
+.ps-grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;min-height:0}
+.ps-col{display:flex;flex-direction:column;border:1.3px solid var(--ln);min-height:0}
+.ps-cat{flex:none;height:20px;background:var(--cat);border-bottom:1px solid var(--ln);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;letter-spacing:-.01em}
+.ps-col>.ps-cat:not(:first-child){border-top:1px solid var(--ln)}
+.ps-sub{flex:none;height:16px;display:grid;grid-template-columns:62% 18% 20%;border-bottom:1px solid var(--ln);font-size:7.5px;color:#333}
+.ps-sub span{display:flex;align-items:center;justify-content:center}
+.ps-sub span+span,.ps-row span+span{border-left:1px solid var(--ln)}
+.ps-row{display:grid;grid-template-columns:62% 18% 20%;border-bottom:1px solid var(--ln);min-height:0;flex-basis:0}
+.ps-row:last-child{border-bottom:0}
+.ps-row span{display:flex;align-items:center;min-width:0;overflow:hidden}
+.ps-row .n{justify-content:center;text-align:center;font-size:11.8px;line-height:1.15;letter-spacing:-.01em}
+.ps-row .u{justify-content:center;text-align:center;font-size:8.2px;line-height:1.15;letter-spacing:-.02em;white-space:nowrap}
+.ps-row .p{justify-content:flex-end;padding-right:3px;font-size:13px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+.ps-row .p.t{font-size:11px;justify-content:center;padding-right:0}
+.ps-row .p em{font-style:normal;font-size:7px;font-weight:700;margin-right:2px}
+.ps-row .p em.up{color:#d42a2a} .ps-row .p em.down{color:#1e5bd0}
+
+/* ================= 거래처 상세 (A4) ================= */
+.dp{--g:#1f7a22;--g2:#e7f2e5;--sub:#5b665b;--rule:#c9d6c6;width:794px;height:1123px;padding:30px 30px 26px;display:flex;flex-direction:column}
+.dh{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-bottom:12px;border-bottom:3px solid var(--g)}
+.dh .b{display:flex;gap:12px;align-items:center}
+.dh img{width:48px}
+.dh b{display:block;font-size:24px;font-weight:700;color:var(--g);letter-spacing:-.02em;line-height:1.1}
+.dh small{display:block;font-size:10px;color:var(--sub);line-height:1.5}
+.dh .r{text-align:right;font-size:10.5px;color:var(--sub);line-height:1.6}
+.dh .r strong{display:block;font-size:13px;color:#111}
 .dtitle{display:flex;justify-content:space-between;align-items:flex-end;margin:14px 0 8px;gap:12px}
-.dtitle h2{margin:0;font-size:22px;font-weight:900;letter-spacing:-.02em}
-.meta{display:grid;grid-template-columns:repeat(4,auto);gap:0;border:1px solid var(--rule);border-radius:5px;overflow:hidden;font-size:11px}
+.dtitle h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.meta{display:grid;grid-template-columns:repeat(4,auto);border:1px solid var(--rule);border-radius:5px;overflow:hidden;font-size:11px}
 .meta span{padding:4px 9px;border-left:1px solid var(--rule)}
-.meta span:nth-child(odd){background:var(--g2);font-weight:700;color:var(--sub);border-left:0}
-.meta span:nth-child(3){border-left:1px solid var(--rule)}
-.basis{font-size:10.5px;background:var(--g2);border-radius:5px;padding:6px 10px;margin-bottom:8px;color:var(--ink)}
-.basis b{color:var(--g)}
+.meta span:nth-child(odd){background:var(--g2);font-weight:700;color:var(--sub)}
+.meta span:first-child{border-left:0}
 table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
 .dt th{background:var(--g);color:#fff;font-weight:700;font-size:10.5px;padding:6px 4px}
-.dt td{border-bottom:1px solid #e3e9e1;padding:5px 5px;vertical-align:middle;line-height:1.25}
-.dt td.c{text-align:center} .dt td.r{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
-.dt td.nm{font-weight:800}
-.dt td.sm{font-size:10px;color:var(--sub)}
-.dt tr.up td{background:#fff6f5} .dt tr.down td{background:#f4f7ff}
-.page.nochg .dt tr td{background:none}
-.page.nochg .dt .chgc{display:none}
+.dt td{border-bottom:1px solid #e3e9e1;padding:5px;vertical-align:middle;line-height:1.25}
+.dt td.c{text-align:center} .dt td.r{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.dt td.nm{font-weight:700} .dt td.sm{font-size:10px;color:var(--sub)}
+.chg{font-size:10px;font-weight:800} .chg.up{color:#d42a2a} .chg.down{color:#1e5bd0} .chg.same{color:#a5aea4} .chg.new{color:var(--g)}
+.dp.nochg .chgc{display:none}
 .notes{margin-top:10px;font-size:10px;color:var(--sub);line-height:1.6}
-.pgno{position:absolute;right:30px;bottom:10px;font-size:9px;color:#9aa49a}
-.ex{position:absolute;top:10px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:#9a6a00;background:#fff4d6;padding:1px 10px;border-radius:99px}
-#capture{position:fixed;left:-20000px;top:0}
-.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;font-size:13px;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
-@media (prefers-reduced-motion:no-preference){.toast{animation:t .2s ease-out}@keyframes t{from{opacity:0;transform:translate(-50%,6px)}}}
+.sf{margin-top:auto;padding-top:8px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;font-size:10px;color:var(--sub);font-weight:600}
 </style>
-
+</head>
+<body>
 <div class="wrap">
   <header class="top">
-    <div>
-      <span class="tag">가안 · 단가표 자동 생성</span>
-      <h1>키친메이트 단가표 생성기</h1>
-      <p>엑셀을 올리면 단가표가 바로 정리되고, 직전 단가와 비교한 등락까지 표시됩니다.</p>
-    </div>
+    <h1>키친메이트 단가표 생성기</h1>
+    <p>단가 엑셀을 올리면 거래처에 보내는 단가표 양식 그대로 자동 정리되고, 이미지·PDF로 바로 저장됩니다.</p>
   </header>
 
   <div class="layout">
@@ -138,9 +137,9 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
         <label class="drop" id="drop">
           <input type="file" id="file" accept=".xlsx,.xls,.xlsm,.csv">
           <strong>엑셀 파일 선택</strong>
-          <span>또는 여기로 끌어다 놓기 · 엑셀/한셀 파일 모두 가능</span>
+          <span>또는 여기로 끌어다 놓기 · 엑셀/한셀 모두 가능</span>
         </label>
-        <div class="file" id="fileName">지금은 예시 데이터를 보여주고 있어요.</div>
+        <div class="file" id="fileName">지금은 11월 09일 단가표 예시를 보여주고 있어요.</div>
         <div id="msg" hidden></div>
       </div>
 
@@ -152,10 +151,10 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
       <div class="group">
         <span class="glabel">2. 단가표 형식</span>
         <div class="seg" role="group" aria-label="단가표 형식">
-          <button type="button" id="mGrid" aria-pressed="true">공용 3단</button>
+          <button type="button" id="mGrid" aria-pressed="true">공용 단가표</button>
           <button type="button" id="mDetail" aria-pressed="false">거래처 상세</button>
         </div>
-        <p class="hint" id="modeHint">전체 업체에 보내는 한 장짜리 단가표</p>
+        <p class="hint" id="modeHint"></p>
       </div>
 
       <div class="group">
@@ -168,16 +167,19 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
       </div>
 
       <div class="group">
-        <span class="glabel">3. 등락 표시</span>
-        <label class="check"><input type="checkbox" id="showChg" checked> 직전 대비 ▲▼ 표시</label>
+        <span class="glabel">3. 등락 표시 (선택)</span>
+        <label class="check"><input type="checkbox" id="showChg"> 직전 대비 ▲▼ 표시</label>
         <select id="basis" aria-label="등락 비교 기준"></select>
         <div class="stats" id="stats"></div>
       </div>
 
       <div class="group">
-        <button type="button" class="btn primary" id="pdfBtn">PDF로 저장</button>
+        <div class="row2">
+          <button type="button" class="btn primary" id="pngBtn">이미지 저장</button>
+          <button type="button" class="btn primary" id="pdfBtn">PDF 저장</button>
+        </div>
+        <p class="hint">카카오톡으로 보낼 때는 이미지, 출력할 때는 PDF가 편합니다.</p>
         <button type="button" class="btn ghost" id="confirmBtn">이 단가로 확정 (다음 비교 기준)</button>
-        <p class="hint">확정해 두면 다음 엑셀을 올릴 때 이 단가와 비교해 등락을 계산합니다.</p>
       </div>
 
       <div class="group">
@@ -200,12 +202,11 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-/* 키친메이트 단가표 엑셀 파서 — 브라우저/Node 공용 (SheetJS 필요) */
+/* ===== 키친메이트 단가표 엑셀 파서 ===== */
 (function (root) {
   const norm = s => String(s == null ? '' : s).replace(/\s+/g, '').replace(/[()（）]/g, '').toLowerCase();
   const clean = s => String(s == null ? '' : s).trim();
 
-  // 단가 문자열 → 비교용 숫자 (범위는 양 끝 평균, 사이즈별 여러 값은 null)
   function priceValue(raw) {
     if (raw == null || raw === '') return null;
     if (typeof raw === 'number') return raw;
@@ -216,21 +217,20 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
     if (nums.length === 1) return nums[0];
     return null;
   }
-  // 화면 표시용 단가
   function priceText(raw) {
-    if (raw == null || raw === '') return '-';
+    if (raw == null || raw === '' || String(raw).trim() === '-') return '시세 문의';
     if (typeof raw === 'number') return raw.toLocaleString('ko-KR');
     let s = String(raw).trim();
     if (/^[\d,]+$/.test(s)) return (+s.replace(/,/g, '')).toLocaleString('ko-KR');
-    return s.replace(/원/g, '').replace(/\s*~\s*/g, '~').replace(/\s*:\s*/g, ' ').replace(/\s*,\s*(?=[A-Za-z가-힣])/g, ' · ').trim();
+    return s.replace(/원/g, '').replace(/\s*~\s*/g, '~').trim();
   }
 
   const COLS = {
+    col: /^(단|열|칸|배치|위치)$/,
     cat: /^(분류|카테고리|구분|품목군)$/,
     name: /^(품목|품명|품목명|상품명)$/,
     unit: /(단위|규격|포장)/,
-    prev: /(전일|직전|어제|이전|7일|지난)/,
-    price: /(오늘|당일|공급단가|^단가|금일)/,
+    prev: /(전일|직전|어제|이전|지난)/,
     grade: /(선별)/,
     origin: /(원산지)/,
     note: /(비고|메모)/,
@@ -244,13 +244,12 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
     }
     return -1;
   }
-
   function mapColumns(header) {
     const m = {};
-    const h = header.map(norm);
-    h.forEach((c, i) => {
+    header.map(norm).forEach((c, i) => {
       if (!c) return;
-      if (m.cat == null && COLS.cat.test(c)) m.cat = i;
+      if (m.col == null && COLS.col.test(c)) m.col = i;
+      else if (m.cat == null && COLS.cat.test(c)) m.cat = i;
       else if (m.name == null && COLS.name.test(c)) m.name = i;
       else if (m.no == null && COLS.no.test(c)) m.no = i;
       else if (m.unit == null && COLS.unit.test(c)) m.unit = i;
@@ -264,112 +263,110 @@ table.dt{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed
     });
     return m;
   }
-
-  // 시트 → { ok, sheetName, columns, items:[{cat,name,unit,price,priceRaw,prevRaw,grade,origin,note}], meta }
   function parseSheet(ws, sheetName, XLSX) {
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
     const hr = findHeader(rows);
     if (hr < 0) return { ok: false, sheetName, reason: '‘품목’과 ‘단가’ 제목 칸을 찾지 못했습니다.' };
     const col = mapColumns(rows[hr]);
     if (col.price == null) return { ok: false, sheetName, reason: '단가 열을 찾지 못했습니다.' };
-    // 제목 위쪽에서 날짜(작성일/적용일) 찾기
-    let date = null, client = '', supplier = '';
+    let date = null, client = '';
     for (let r = 0; r < hr; r++) rows[r].forEach((c, i) => {
-      const next = () => clean(rows[r].slice(i + 1).find(x => x !== ''));
-      if (/^거래처$/.test(clean(c))) client = next();
-      if (/^공급사$/.test(clean(c))) supplier = next();
+      if (/^거래처$/.test(clean(c))) client = clean(rows[r].slice(i + 1).find(x => x !== ''));
       if (/작성일|적용일|기준일|날짜/.test(clean(c))) {
         const v = rows[r].slice(i + 1).find(x => x !== '');
         if (typeof v === 'number' && v > 40000 && v < 60000) date = new Date(Math.round((v - 25569) * 864e5));
+        else if (v instanceof Date) date = v;
         else if (v && !isNaN(Date.parse(v))) date = new Date(v);
       }
     });
     const items = [];
-    let curCat = '';
+    let curCat = '', curCol = '';
     for (let r = hr + 1; r < rows.length; r++) {
       const row = rows[r];
       const name = clean(row[col.name]);
       const catCell = col.cat != null ? clean(row[col.cat]) : '';
+      const colCell = col.col != null ? clean(row[col.col]) : '';
       if (catCell) curCat = catCell;
+      if (colCell) curCol = colCell;
       if (!name) continue;
       if (/^[※*]/.test(name) || /안내|^합계/.test(name)) continue;
       items.push({
-        cat: curCat || '공급 품목',
-        no: col.no != null ? clean(row[col.no]) : '',
-        name,
+        cat: curCat || '공급 품목', col: +String(curCol).replace(/\D/g, '') || 0,
+        no: col.no != null ? clean(row[col.no]) : '', name,
         unit: col.unit != null ? clean(row[col.unit]) : '',
-        priceRaw: row[col.price],
-        prevRaw: col.prev != null ? row[col.prev] : undefined,
+        priceRaw: row[col.price], prevRaw: col.prev != null ? row[col.prev] : undefined,
         grade: col.grade != null ? clean(row[col.grade]) : '',
         origin: col.origin != null ? clean(row[col.origin]) : '',
         note: col.note != null ? clean(row[col.note]) : '',
       });
     }
-    // 메모성 행(번호 열에 '입력 안내' 등) 제외: 단위도 단가도 없는 긴 문장
     const filtered = items.filter(it => !(it.name.length > 25 && !it.unit && (it.priceRaw === '' || it.priceRaw == null)));
-    return { ok: true, sheetName, columns: col, items: filtered, date, client, supplier,
-      detailed: col.grade != null || col.origin != null, hasPrev: col.prev != null, hasCat: col.cat != null };
+    return { ok: true, sheetName, items: filtered, date, client,
+      detailed: col.grade != null || col.origin != null, hasPrev: col.prev != null };
   }
+  const parseWorkbook = (wb, XLSX) => wb.SheetNames.map(n => parseSheet(wb.Sheets[n], n, XLSX));
 
-  function parseWorkbook(wb, XLSX) {
-    return wb.SheetNames.map(n => parseSheet(wb.Sheets[n], n, XLSX));
-  }
-
-  // 등락 계산. baseline: {정규화이름: 비교용숫자} — 엑셀에 직전단가 열이 있으면 그걸 우선
   function withChanges(items, baseline) {
     return items.map(it => {
       const now = priceValue(it.priceRaw);
       let prev = it.prevRaw !== undefined ? priceValue(it.prevRaw) : undefined;
-      let source = 'excel';
-      if (prev === undefined) { source = 'saved'; const k = norm(it.name); prev = baseline && k in baseline ? baseline[k] : undefined; }
+      if (prev === undefined) { const k = norm(it.name); prev = baseline && k in baseline ? baseline[k] : undefined; }
       let change = null, state = 'none';
       if (prev === undefined) state = baseline && Object.keys(baseline).length ? 'new' : 'none';
       else if (now != null && prev != null) { change = Math.round(now - prev); state = change > 0 ? 'up' : change < 0 ? 'down' : 'same'; }
-      return Object.assign({}, it, { price: priceText(it.priceRaw), now, prev, change, state, source });
+      return Object.assign({}, it, { price: priceText(it.priceRaw), now, prev, change, state });
     });
   }
-
-  const api = { priceValue, priceText, parseSheet, parseWorkbook, withChanges, norm };
-  if (typeof module !== 'undefined') module.exports = api; else root.KMParser = api;
+  root.KMParser = { priceValue, priceText, parseWorkbook, withChanges, norm };
 })(this);
 
-/* 한셀(HCell) 등 네임스페이스 접두어(x:)가 붙은 xlsx 정규화 — JSZip 필요 */
+/* 한셀(HCell) xlsx 정규화 */
 (function (root) {
   async function normalizeXlsx(buf, JSZip) {
     const zip = await JSZip.loadAsync(buf);
     let changed = false;
-    const names = Object.keys(zip.files).filter(n => /\.(xml|rels)$/i.test(n));
-    for (const n of names) {
+    for (const n of Object.keys(zip.files).filter(n => /\.(xml|rels)$/i.test(n))) {
       const txt = await zip.file(n).async('string');
-      let out = txt
-        .replace(/([A-Za-z])\s+=\s*"/g, '$1="')               // 한셀: Extension = "rels"
-        .replace(/\s+\?>/, '?>')
-        // 한셀 확장(mc:AlternateContent / hs:*) → 표준 Fallback 내용만 남김
-        .replace(/<mc:AlternateContent\b[^>]*>([\s\S]*?)<\/mc:AlternateContent>/g, (all, inner) => {
-          const fb = inner.match(/<mc:Fallback\b[^>]*>([\s\S]*?)<\/mc:Fallback>/);
-          return fb ? fb[1] : '';
-        })
-        .replace(/<hs:[^>]*\/>/g, '')
-        .replace(/<hs:(\w+)\b[^>]*>[\s\S]*?<\/hs:\1>/g, '');
+      let out = txt.replace(/([A-Za-z])\s+=\s*"/g, '$1="').replace(/\s+\?>/, '?>')
+        .replace(/<mc:AlternateContent\b[^>]*>([\s\S]*?)<\/mc:AlternateContent>/g, (a, inner) => { const fb = inner.match(/<mc:Fallback\b[^>]*>([\s\S]*?)<\/mc:Fallback>/); return fb ? fb[1] : ''; })
+        .replace(/<hs:[^>]*\/>/g, '').replace(/<hs:(\w+)\b[^>]*>[\s\S]*?<\/hs:\1>/g, '');
       const m = out.match(/<([A-Za-z0-9]+):(workbook|worksheet|sst|styleSheet)\b/);
-      if (m) {
-        const p = m[1];
-        out = out
-          .replace(new RegExp('<' + p + ':', 'g'), '<')
-          .replace(new RegExp('</' + p + ':', 'g'), '</')
-          .replace(new RegExp('xmlns:' + p + '=', 'g'), 'xmlns=');
-      }
+      if (m) { const p = m[1]; out = out.replace(new RegExp('<' + p + ':', 'g'), '<').replace(new RegExp('</' + p + ':', 'g'), '</').replace(new RegExp('xmlns:' + p + '=', 'g'), 'xmlns='); }
       if (out !== txt) { zip.file(n, out); changed = true; }
     }
     return changed ? await zip.generateAsync({ type: 'uint8array' }) : new Uint8Array(buf);
   }
-  if (typeof module !== 'undefined') module.exports.normalizeXlsx = normalizeXlsx;
-  else root.KMParser.normalizeXlsx = normalizeXlsx;
+  root.KMParser.normalizeXlsx = normalizeXlsx;
 })(this);
-
 </script>
 <script>
-const SITE = {"dateLabel": "10월 09일 기준", "columns": [{"categories": [{"name": "엽채류·나물·특수야채", "items": [["적상추 (특)", "4kg / box", "13,000"], ["꽃상추 (특)", "4kg / box", "13,000"], ["청상추 (특)", "4kg / box", "12,000"], ["알배기 (특)", "8kg / box", "25,000"], ["봉지깻잎", "box", "16,000"], ["부추", "단", "2,000"], ["청경채 \n(샤브전용)", "4kg / box", "7,000"], ["치커리", "2kg / box", "9,000"], ["근대", "4kg / box", "12,000"], ["양상추", "12수 / box", "18,000"], ["적채", "6수 / box", "18,000"], ["쑥갓", "4kg / box", "12,000"], ["비름나물", "4kg / box", "12,000"], ["미나리", "4kg / box", "30,000"], ["열무", "4kg / box", "8,000"], ["얼갈이", "4kg / box", "5,000"], ["적치커리", "2kg / box", "14,000"], ["쌈추", "1kg / box", "9,000"], ["비타민", "2kg / box", "14,000"], ["적근대", "2kg / box", "13,000"], ["적겨자", "2kg / box", "26,000"], ["케일", "2kg / box", "12,000"], ["당귀", "1kg / box", "10,000"], ["로즈", "1kg / box", "10,000"], ["겨자잎", "2kg / box", "30,000"], ["아스파라거스", "묶음", "25,000"]]}, {"name": "콩나물·숙주·고사리·두부·묵", "items": [["숙주", "3.5kg / box", "5,500"], ["콩나물", "3.5kg / box", "4,500"], ["찜콩나물", "3.5kg / box", "4,500"], ["고사리", "1kg", "2,300"], ["두부 (대)", "3kg / 팩", "5,500"], ["두부 (중)", "1.8kg / 팩", "4,500"], ["도토리묵\n(송가네)", "3kg / 팩", "8,500"]]}, {"name": "양파", "items": [["국산양파", "15kg / 망", "23,000"], ["수입양파", "15kg / 망", "24,000"], ["깐양파", "1kg", "2,000"], ["적양파", "15kg / 망", "-"]]}]}, {"categories": [{"name": "버섯류", "items": [["팽이버섯", "34개입/box", "11,000"], ["새송이 (특)", "2kg", "8,000"], ["느타리버섯", "2kg / box", "9,000"], ["맛타리버섯", "팩 / 200g", "1,500"], ["콩알새송이", "2kg", "6,000"], ["엄지새송이", "2kg", "7,000"], ["국산 표고", "1kg", "9,000"], ["수입 표고", "box", "25,000"], ["양송이버섯", "2kg / box", "26,000"], ["백목이버섯", "1kg", "16,000"], ["흑목이버섯", "1kg", "17,000"], ["백만송이", "1.5kg / box", "12,000"], ["만가닥버섯", "1.5kg / box", "9,000"], ["황금송이", "1.5kg / box", "10,000"], ["노루궁뎅이", "1kg / box", "24,000"]]}, {"name": "계란", "items": [["계란 (대)", "1판 (30구)", "6,300"], ["계란 (특)", "1판 (30구)", "6,500"], ["계란 (왕)", "1판 (30구)", "7,000"]]}, {"name": "근채류·서류", "items": [["수입당근", "10kg / box", "9,000"], ["박스무", "20kg / box", "20,000"], ["깐양배추", "3개입 (망)", "14,000"], ["포기배추", "3개입 (망)", "13,000"], ["감자 (파지)", "10kg / box", "20,000"], ["감자 (왕왕)", "20kg / box", "36,000"], ["호박고구마", "10kg / box", "20,000"]]}, {"name": "마늘", "items": [["통마늘 (대)", "1kg", "10,000"], ["통마늘 (중)", "1kg", "9,000"], ["통마늘 (소)", "1kg", "9,000"], ["국산 간마늘", "1kg", "8,000"], ["국산 간생강", "1kg", "10,000"], ["수입 통생강", "1kg", "12,000"]]}]}, {"categories": [{"name": "대파·고추·오이·가지·호박", "items": [["관대파", "4kg / 관", "8,000"], ["단대파", "2kg / 단", "5,000"], ["깐쪽파", "단", "8,000"], ["청양고추 (특)", "10kg / box", "45,000"], ["청양고추 (상)", "10kg / box", "25,000"], ["청양고추", "1kg", "6,000"], ["홍고추", "1kg", "12,000"], ["꽈리고추", "1kg", "8,000"], ["오이고추", "1kg", "6,000"], ["청오이 (특)", "10kg / box", "18,000"], ["백오이 (특)", "10kg / box", "25,000"], ["애호박 (특)", "20수 / box", "15,000"], ["쥬키니 (특)", "10kg / box", "10,000"], ["가지 (특)", "5kg / box", "15,000"], ["단호박", "8수 / box", "21,000"]]}, {"name": "쌀·김치", "items": [["햅쌀\n(청풍명월)", "20kg / 포", "60,000"], ["햅쌀\n(맑은미)", "20kg / 포", "60,000"], ["쌀 (미국)", "20kg / 포", "49,000"], ["수입김치", "10kg / box", "15,000"], ["국산김치", "10kg / box", "34,000"]]}, {"name": "국산과일·수입과일", "items": [["샤인머스켓", "2kg / box", "8,000"], ["사과", "10kg / box", "68,000"], ["방울토마토\n(1번)", "5kg / box", "35,000"], ["완숙토마토\n(2번)", "5kg / box", "24,000"], ["배 (특)", "15kg / box", "50,000"], ["바나나", "필리핀 / box", "32,000"], ["찰토마토", "1번다마/box", "25,000"]]}, {"name": "새싹·어린잎·무순", "items": [["새싹 (대)", "팩 / 500g", "7,000"], ["새싹 (소)", "팩 / 50g", "1,000"], ["베이비 (대)", "팩 / 500g", "7,000"], ["베이비 (소)", "팩 / 50g", "1,000"], ["무순 (소)", "팩 / 50g", "700"]]}]}]};
+/* ===== 고정 정보 (바뀌면 여기만 고치면 됩니다) ===== */
+const INFO = {
+  market: '대전 노은 농수산물시장',
+  stall: '중앙청과 중도매인 2번 · 원예농협공판장 300번',
+  delivery: '월~토 배송 / 새벽 3시 이전 주문 당일 배송',
+  tagline: '작은 단가 차이도 반복되면 누적되어 식재료 비용에 영향을 줍니다.',
+  address: '대전광역시 유성구 노은동로 33(노은동)',
+  tels: ['010-5682-8700', '010-9722-8402'],
+};
+const LOGO = 'data:image/png;base64,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';
+const QR_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29" shape-rendering="crispEdges" class="segno"><path class="qrline" stroke="#111" d="M0 0.5h7m5 0h1m1 0h5m3 0h7m-29 1h1m5 0h1m1 0h1m1 0h1m1 0h3m5 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m1 0h3m1 0h1m2 0h2m2 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m2 0h1m4 0h2m1 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m3 0h3m2 0h1m1 0h4m1 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m2 0h1m6 0h2m2 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h2m1 0h2m1 0h3m1 0h2m-20 1h1m5 0h1m1 0h1m1 0h2m5 0h1m3 0h2m2 0h3m-26 1h2m3 0h4m2 0h1m1 0h2m2 0h1m3 0h2m1 0h2m-27 1h1m3 0h3m1 0h2m2 0h3m1 0h2m1 0h1m2 0h1m-24 1h2m2 0h2m2 0h1m1 0h4m2 0h1m3 0h2m3 0h1m-25 1h4m1 0h1m1 0h2m3 0h1m1 0h1m2 0h2m2 0h2m4 0h1m-29 1h3m1 0h1m3 0h1m2 0h2m2 0h1m1 0h8m2 0h2m-29 1h1m1 0h1m3 0h2m1 0h1m1 0h1m3 0h1m1 0h1m7 0h2m-27 1h1m10 0h1m6 0h1m3 0h1m1 0h1m1 0h1m1 0h1m-29 1h1m2 0h1m2 0h3m6 0h3m3 0h1m1 0h1m1 0h2m-27 1h2m2 0h1m3 0h4m1 0h3m1 0h8m1 0h3m-29 1h3m1 0h6m1 0h2m2 0h2m2 0h4m1 0h2m2 0h1m-29 1h1m3 0h2m1 0h1m1 0h5m2 0h1m2 0h2m1 0h1m1 0h1m-25 1h1m4 0h3m3 0h1m2 0h4m1 0h6m1 0h3m-21 1h1m5 0h3m3 0h1m3 0h2m-26 1h7m3 0h1m4 0h1m1 0h4m1 0h1m1 0h3m-27 1h1m5 0h1m2 0h1m1 0h1m2 0h1m3 0h1m1 0h1m3 0h1m2 0h2m-29 1h1m1 0h3m1 0h1m2 0h1m2 0h3m4 0h7m1 0h2m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h3m2 0h3m4 0h2m1 0h1m-29 1h1m1 0h3m1 0h1m8 0h1m1 0h1m1 0h1m2 0h6m-28 1h1m5 0h1m2 0h3m3 0h2m2 0h1m1 0h6m1 0h1m-29 1h7m1 0h2m1 0h4m1 0h3m2 0h1m1 0h1m2 0h1"/></svg>';
+
+/* ===== 예시: 11월 09일 단가표 (단, 분류, [품목, 단위, 단가]) ===== */
+const EXAMPLE = [
+ [1,'엽채류·나물·특수야채',[['적상추 (특)','4kg / box',35000],['꽃상추 (특)','4kg / box',24000],['청상추 (특)','4kg / box',24000],['알배기 (특)','약 8kg / box',25000],['봉지깻잎','2kg / box',39000],['부추','약 500g / 단',3500],['청경채 (샤브전용)','4kg / box',11000],['치커리','2kg / box',11000],['근대','4kg / box',35000],['양상추','12수 / box',17000],['적채','6수 / box',16000],['쑥갓','4kg / box',18000],['참나물','4kg / box',10000],['미나리','4kg / box',40000],['열무','4kg / box',10000],['얼갈이','4kg / box',8000],['시금치','4kg / box',18000],['아욱','4kg / box',25000],['비름나물','4kg / box',20000],['적근대','2kg / box',12000],['적겨자','2kg / box',18000],['케일','2kg / box',22000],['당귀','1kg / box',12000],['비타민','2kg / box',8000],['쌈추','1kg / box',22000],['적치커리','2kg / box',13000]]],
+ [1,'콩나물·숙주·고사리·두부·묵',[['숙주','3.5kg / box',5500],['콩나물','3.5kg / box',4500],['찜콩나물','3.5kg / box',4500],['삶은고사리','1kg / 수입산',2300],['두부 (대)','3kg / 팩',5500],['두부 (중)','1.8kg / 팩',4500],['도토리묵 (송가네)','3kg / 팩',8500]]],
+ [1,'양파',[['국산양파','15kg / 망',23000],['수입양파','15kg / 망',24000],['깐양파','1kg',2000],['적양파','15kg / 망','-']]],
+ [2,'버섯류',[['팽이버섯','34개입/box',9000],['새송이 (특)','2kg',10000],['느타리버섯','2kg / box',10000],['맛타리버섯','200g / 팩',1200],['콩알새송이','2kg',4000],['엄지새송이','2kg',6000],['국산 표고','1kg',9000],['수입 표고버섯','4kg / box',27000],['양송이버섯','2kg / box',28000],['백목이버섯','1kg',16000],['흑목이버섯','1kg',17000],['백만송이','1.5kg / box',12000],['만가닥버섯','1.5kg / box',9000],['황금팽이버섯','1.5kg / box',30000],['노루궁뎅이','1kg / box',25000]]],
+ [2,'계란',[['계란 (대)','1판 (30구)',5200],['계란 (특)','1판 (30구)',5500],['계란 (왕)','1판 (30구)',5900]]],
+ [2,'근채류·서류',[['수입당근','10kg / box',9000],['박스무','20kg / box',12000],['깐양배추','3개입 (망)',12000],['포기배추','3개입 (망)',9000],['감자 (파지)','20kg / box',22000],['감자 (왕왕)','20kg / box',38000],['호박고구마','10kg / box',18000]]],
+ [2,'마늘·생강',[['통마늘 (대)','1kg',11000],['통마늘 (중)','1kg',10000],['통마늘 (소)','1kg',10000],['국산 간마늘','1kg',8000],['국산 간생강','1kg',10000],['수입 통생강','1kg',12000]]],
+ [3,'대파·고추·오이·가지·호박',[['관대파','4kg / 관',9000],['단대파','2kg / 단',5500],['깐쪽파','약 1kg / 단',7000],['청양고추 (특)','10kg / box',50000],['청양고추 (상)','10kg / box',40000],['청양고추 (특)','1kg',7000],['홍고추 (특)','1kg',10000],['꽈리고추 (특)','1kg',10000],['오이고추 (특)','1kg',6000],['청오이 (특)','10kg / box',40000],['백오이 (특)','10kg / box',40000],['애호박 (특)','20수 / box',42000],['쥬키니 (특)','10kg / box',30000],['가지 (특)','5kg / box',25000],['단호박 (국산)','8수 / box',23000]]],
+ [3,'쌀·김치',[['햅쌀 (청풍명월)','20kg / 포',62000],['햅쌀 (맑은미)','20kg / 포',60000],['수입김치','10kg / box',15000],['국산김치','10kg / box',35000]]],
+ [3,'과일',[['배 (특)','15kg / box',40000],['사과','10kg / box',52000],['방울토마토 (1번)','5kg / box',34000],['완숙토마토 (2번)','5kg / box',22000],['바나나','필리핀산',26000],['오렌지','72과 / box',62000],['찰토마토(1번)','5kg / box',22000]]],
+];
+const exampleItems = EXAMPLE.flatMap(([col, cat, rows]) => rows.map(r => ({col, cat, name:r[0], unit:r[1], priceRaw:r[2], grade:'', origin:'', note:'', no:''})));
+
 const P = window.KMParser;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -379,62 +376,81 @@ const store = {
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
 };
 
-/* ---------- 예시 데이터: 현재 사이트(10월 09일) 단가를 직전으로, 일부만 바꾼 ‘다음날’ 단가 ---------- */
-const siteItems = [];
-SITE.columns.forEach(col => col.categories.forEach(c => c.items.forEach(r => siteItems.push({cat:c.name, name:r[0], unit:r[1], priceRaw:r[2]}))));
-const SITE_BASE = { label: SITE.dateLabel + ' (현재 홈페이지)', map: Object.fromEntries(siteItems.map(i => [P.norm(i.name), P.priceValue(i.priceRaw)])) };
-const EX_CHANGES = {'적상추 (특)':15000,'꽃상추 (특)':15000,'미나리':27000,'알배기 (특)':23000,'청양고추 (특)':48000,'애호박 (특)':13000,'백오이 (특)':27000,'감자 (왕왕)':38000,'사과':65000,'양송이버섯':24000,'박스무':18000,'단호박':23000,'국산김치':34000};
-const exampleItems = siteItems.map(i => Object.assign({}, i, EX_CHANGES[i.name] ? {priceRaw: EX_CHANGES[i.name].toLocaleString('ko-KR')} : {}));
-exampleItems.splice(26, 0, {cat:'엽채류·나물·특수야채', name:'고수', unit:'1kg / box', priceRaw:'12,000'});
-
-/* ---------- 상태 ---------- */
-const S = {
-  source:'example', fileName:'', sheets:[], sheetIdx:0,
-  raw: exampleItems, hasPrev:false, detailed:false,
-  mode:'grid', showChg:true, basis:'saved',
-  dateLabel:'10월 10일 기준', client:'', supplier:'키친메이트'
-};
-const confirmedBase = () => store.get('km.confirmed', null) || SITE_BASE;
+const S = { source:'example', sheets:[], raw: exampleItems, hasPrev:false, mode:'grid', showChg:false, basis:'saved', dateLabel:'11월 09일 기준', client:'' };
+const confirmedBase = () => store.get('km.confirmed', null) || {label:'없음', map:{}};
 
 function computeItems(){
-  const base = confirmedBase().map;
   let raw = S.raw;
   if (!(S.hasPrev && S.basis === 'excel')) raw = raw.map(i => Object.assign({}, i, {prevRaw: undefined}));
-  return P.withChanges(raw, base);
+  return P.withChanges(raw, confirmedBase().map);
 }
 
-/* ---------- 3단 배치: 카테고리 순서 유지, 세 칸 높이가 가장 고르게 되도록 나눔 ---------- */
-const lines = it => it.name.includes('\n') || it.name.length > 9 ? 1.7 : 1;
-const CAT_PX = 49, AVAIL = 868;
+/* ===== 품목명 줄바꿈: 엑셀 줄바꿈 우선, 길고 괄호 앞에 띄어쓰기가 있으면 두 줄 ===== */
+function nameLines(name){
+  const s = String(name).trim();
+  if (s.includes('\n')) return s.split(/\n+/).map(x => x.trim());
+  const m = s.match(/^(.+?)\s+(\(.+\))$/);
+  if (m && (s.length >= 9 || m[2].length >= 5)) return [m[1], m[2]];
+  return [s];
+}
+const rowWeight = it => nameLines(it.name).length > 1 ? 1.32 : 1;
+
+/* ===== 3단 배치 ===== */
+const CAT_W = 1.8; // 분류 제목 + 소제목 높이를 행 단위로 환산
 function layoutColumns(items){
   let cats = [];
-  items.forEach(it => { let c = cats[cats.length-1]; if (!c || c.name !== it.cat) cats.push(c = {name: it.cat, items: []}); c.items.push(it); });
-  const RH = 22;  // 균형 계산용 가상 행 높이
-  const h = c => CAT_PX + c.items.reduce((s, it) => s + lines(it) * RH, 0);
-  const total = cats.reduce((s, c) => s + h(c), 0);
-  // 한 카테고리가 너무 길면 (계속)으로 쪼갬
-  const limit = total / 3;
+  items.forEach(it => { let c = cats[cats.length-1]; if (!c || c.name !== it.cat) cats.push(c = {name: it.cat, col: it.col, items: []}); c.items.push(it); });
+  const h = c => CAT_W + c.items.reduce((s, it) => s + rowWeight(it), 0);
+  // 엑셀에 ‘단’ 번호가 모두 있으면 그대로
+  if (cats.length && cats.every(c => c.col >= 1 && c.col <= 3)) {
+    const cols = [[], [], []]; cats.forEach(c => cols[c.col - 1].push(c)); return cols;
+  }
+  // 없으면 세 칸 높이가 가장 고르게 되도록 순서대로 나눔
+  const total = cats.reduce((s, c) => s + h(c), 0), limit = total / 3;
   cats = cats.flatMap(c => {
-    if (h(c) <= limit * 1.05) return [c];
+    if (h(c) <= limit * 1.08) return [c];
     const k = Math.min(3, Math.ceil(h(c) / limit)), per = Math.ceil(c.items.length / k), out = [];
     for (let i = 0; i < c.items.length; i += per) out.push({name: c.name + (i ? ' (계속)' : ''), items: c.items.slice(i, i + per)});
     return out;
   });
-  // 연속 구간 3분할 중 가장 높은 칸이 최소인 경우 선택
   const H = cats.map(h), pre = [0]; H.forEach(x => pre.push(pre[pre.length-1] + x));
-  const sum = (a, b) => pre[b] - pre[a]; const n = cats.length;
+  const sum = (a, b) => pre[b] - pre[a], n = cats.length;
   let best = null;
   for (let i = 0; i <= n; i++) for (let j = i; j <= n; j++) {
     const m = Math.max(sum(0, i), sum(i, j), sum(j, n));
     if (!best || m < best.m) best = {m, i, j};
   }
-  const cols = [cats.slice(0, best.i), cats.slice(best.i, best.j), cats.slice(best.j)];
-  // 가장 긴 칸이 A4에 들어가도록 행 높이 결정
-  const rh = Math.max(15, Math.min(30, Math.min(...cols.map(col => {
-    const l = col.reduce((s, c) => s + c.items.reduce((t, it) => t + lines(it), 0), 0);
-    return l ? (AVAIL - col.length * CAT_PX) / l : 30;
-  }))));
-  return {cols, rh: Math.floor(rh)};
+  return [cats.slice(0, best.i), cats.slice(best.i, best.j), cats.slice(best.j)];
+}
+
+const exBadge = () => S.source === 'example' ? '<span class="ex">예시 데이터</span>' : '';
+const isNum = p => /^[\d,]+$/.test(p);
+
+function priceCell(it){
+  let mark = '';
+  if (S.showChg && it.state === 'up') mark = `<em class="up">▲${won(it.change)}</em>`;
+  if (S.showChg && it.state === 'down') mark = `<em class="down">▼${won(it.change)}</em>`;
+  return `<span class="p${isNum(it.price) ? '' : ' t'}">${mark}${esc(it.price)}</span>`;
+}
+
+function renderGrid(items){
+  const cols = layoutColumns(items);
+  const colHtml = cols.map(cats => `<div class="ps-col">${cats.map(c => `
+      <div class="ps-cat">${esc(c.name)}</div>
+      <div class="ps-sub"><span>품목</span><span>단위</span><span>단가(원)</span></div>
+      ${c.items.map(it => `<div class="ps-row" style="flex-grow:${rowWeight(it)}"><span class="n">${nameLines(it.name).map(esc).join('<br>')}</span><span class="u">${esc(it.unit)}</span>${priceCell(it)}</div>`).join('')}`).join('')}
+    </div>`).join('');
+  return `<div class="page ps">${exBadge()}
+    <div class="ps-head">
+      <img class="ps-logo" src="${LOGO}" alt="">
+      <div class="ps-brand"><b>KITCHEN MATE</b><i>FRESH VEGETABLE</i><small>${esc(INFO.market)}<br>${esc(INFO.stall)}</small></div>
+      <div class="ps-info"><strong>${esc(INFO.delivery)}</strong><span>${esc(INFO.tagline)}</span><span>주소 : ${esc(INFO.address)}</span>
+        <div class="tel">${INFO.tels.map(t => `☎ <u>${esc(t)}</u>`).join('&nbsp; ')}</div></div>
+      <div class="ps-qr"><div class="box">${QR_SVG}</div><span>QR로 바로가기</span></div>
+      <div class="ps-date">${esc(S.dateLabel)}</div>
+    </div>
+    <div class="ps-grid">${colHtml}</div>
+  </div>`;
 }
 
 function chgCell(it){
@@ -442,60 +458,28 @@ function chgCell(it){
   if (it.state === 'down') return `<span class="chg down">▼${won(it.change)}</span>`;
   if (it.state === 'same') return `<span class="chg same">-</span>`;
   if (it.state === 'new') return `<span class="chg new">NEW</span>`;
-  return `<span class="chg"></span>`;
+  return '';
 }
-const isText = p => !/^[\d,]+$/.test(p) && p !== '-';
-
-function sheetHeader(){
-  return `<div class="sh">
-    <div class="brand"><div class="mark">KM</div><div>
-      <b>KITCHEN MATE</b><i>FRESH VEGETABLE</i>
-      <small>대전 노은 농수산물시장 · 중앙청과 중도매인 2번 · 원예농협공판장 300번<br>월~토 배송 / 새벽 3시 이전 주문 당일 배송</small>
-    </div></div>
-    <div class="shr"><span class="dlabel">${esc(S.dateLabel)}</span>
-      <span class="tel">☎ 010-5682-8700 · 010-9722-8402</span>
-      <small>대전광역시 유성구 노은동로 33</small></div>
-  </div>`;
-}
-const exBadge = () => S.source === 'example' ? '<span class="ex">예시 데이터</span>' : '';
-
-function renderGrid(items){
-  const {cols, rh} = layoutColumns(items);
-  const colHtml = cols.map(cats => `<div>${cats.map(c => `<section class="cat"><h3>${esc(c.name)}</h3>
-      <div class="thead"><span>품목</span><span>단위</span><span>단가(원)</span><span class="chg">등락</span></div>
-      ${c.items.map(it => `<div class="row ${it.state}"><span class="n">${esc(it.name.trim())}</span><span class="u">${esc(it.unit)}</span><span class="p${isText(it.price)?' t':''}">${esc(it.price).replace(/~/g,'~<wbr>').replace(/ · /g,' ·<wbr> ')}</span>${chgCell(it)}</div>`).join('')}
-    </section>`).join('')}</div>`).join('');
-  return `<div class="page${S.showChg?'':' nochg'}" style="--rh:${rh}px">${exBadge()}${sheetHeader()}
-    <div class="legend">${S.showChg ? `<span>등락: 직전(${esc(basisLabel())}) 대비</span><span class="u">▲ 상승</span><span class="d">▼ 하락</span>` : ''}</div>
-    <div class="grid3">${colHtml}</div>
-    <div class="sf"><span>단가는 매일 변경될 수 있습니다. 주문 전 확인해 주세요.</span><span>작은 단가 차이도 반복되면 식재료 비용에 영향을 줍니다.</span></div>
-  </div>`;
-}
-
 function renderDetail(items){
   const FIRST = 33, NEXT = 40, pages = [[]];
-  const w = it => (it.name.length > 8 || String(it.price).length > 13 || it.note.length > 13 || it.grade.length > 16 || it.origin.length > 6) ? 1.6 : 1;
+  const w = it => (it.name.length > 8 || it.note.length > 13 || it.grade.length > 16) ? 1.6 : 1;
   let used = 0;
   items.forEach(it => { const cap = pages.length === 1 ? FIRST : NEXT; if (used + w(it) > cap) { pages.push([]); used = 0; } pages[pages.length-1].push(it); used += w(it); });
-  const startIdx = pages.map((p, i) => pages.slice(0, i).reduce((s, x) => s + x.length, 0));
-  const thead = `<thead><tr><th style="width:36px">번호</th><th style="width:118px">품목</th><th style="width:78px">규격 / 포장</th><th>선별 기준</th><th style="width:62px">원산지</th><th style="width:96px">공급단가(원)</th><th class="chgc" style="width:58px">등락</th><th style="width:118px">비고</th></tr></thead>`;
-  return pages.map((rows, pi) => `<div class="page${S.showChg?'':' nochg'}">${pi===0?exBadge():''}${sheetHeader()}
-    ${pi===0 ? `<div class="dtitle"><h2>공급단가표</h2>
-      <div class="meta"><span>거래처</span><span>${esc(S.client || '-')}</span><span>품목 수</span><span>${items.length}</span></div></div>
-      <div class="basis"><b>선별 기준</b> 특 우선. 특·상 가격 차이가 크면 상으로 대체하며, 가격 대비 사이즈가 잘 나오는 상품을 공급합니다.</div>` : '<div style="height:12px"></div>'}
+  const start = pages.map((p, i) => pages.slice(0, i).reduce((s, x) => s + x.length, 0));
+  const head = `<div class="dh"><div class="b"><img src="${LOGO}" alt=""><div><b>KITCHEN MATE</b><small>${esc(INFO.market)} · ${esc(INFO.stall)}</small></div></div>
+    <div class="r"><strong>${esc(S.dateLabel)}</strong>☎ ${INFO.tels.map(esc).join(' · ')}<br>${esc(INFO.address)}</div></div>`;
+  const thead = `<thead><tr><th style="width:36px">번호</th><th style="width:130px">품목</th><th style="width:84px">규격 / 포장</th><th>선별 기준</th><th style="width:62px">원산지</th><th style="width:86px">공급단가(원)</th><th class="chgc" style="width:58px">등락</th><th style="width:110px">비고</th></tr></thead>`;
+  return pages.map((rows, pi) => `<div class="page dp${S.showChg ? '' : ' nochg'}">${pi === 0 ? exBadge() : ''}${head}
+    ${pi === 0 ? `<div class="dtitle"><h2>공급단가표</h2><div class="meta"><span>거래처</span><span>${esc(S.client || '-')}</span><span>품목 수</span><span>${items.length}</span></div></div>` : '<div style="height:12px"></div>'}
     <table class="dt">${thead}<tbody>
-      ${rows.map((it, k) => `<tr class="${it.state}"><td class="c">${esc(it.no || startIdx[pi]+k+1)}</td><td class="nm">${esc(it.name)}</td><td class="c sm">${esc(it.unit)}</td><td class="sm">${esc(it.grade)}</td><td class="c sm">${esc(it.origin)}</td><td class="r">${esc(it.price)}</td><td class="c chgc">${chgCell(it)}</td><td class="sm">${esc(it.note)}</td></tr>`).join('')}
+      ${rows.map((it, k) => `<tr><td class="c">${esc(it.no || start[pi] + k + 1)}</td><td class="nm">${esc(it.name)}</td><td class="c sm">${esc(it.unit)}</td><td class="sm">${esc(it.grade)}</td><td class="c sm">${esc(it.origin)}</td><td class="r">${esc(it.price)}</td><td class="c chgc">${chgCell(it)}</td><td class="sm">${esc(it.note)}</td></tr>`).join('')}
     </tbody></table>
-    ${pi===pages.length-1 ? `<div class="notes">※ 본 단가는 적용일 기준이며 산지 및 시장 상황에 따라 변동될 수 있습니다.<br>※ 품절·규격·원산지 변경이 필요한 경우 사전 협의 후 납품합니다.${S.showChg?`<br>※ 등락은 직전(${esc(basisLabel())}) 단가 대비이며, 범위 단가는 양 끝값의 평균으로 비교합니다.`:''}</div>` : ''}
-    <div class="sf"><span>키친메이트 · ☎ 010-5682-8700</span><span>${pi+1} / ${pages.length}</span></div>
+    ${pi === pages.length - 1 ? `<div class="notes">※ 본 단가는 기준일 단가이며 산지 및 시장 상황에 따라 변동될 수 있습니다.<br>※ 품절·규격·원산지 변경이 필요한 경우 사전 협의 후 납품합니다.</div>` : ''}
+    <div class="sf"><span>키친메이트 · ☎ ${esc(INFO.tels[0])}</span><span>${pi + 1} / ${pages.length}</span></div>
   </div>`).join('');
 }
 
-function basisLabel(){
-  if (S.hasPrev && S.basis === 'excel') return '엑셀 직전단가';
-  return confirmedBase().label;
-}
-
+function basisLabel(){ return (S.hasPrev && S.basis === 'excel') ? '엑셀 직전단가' : confirmedBase().label; }
 function renderBasisSelect(){
   const opts = [`<option value="saved">마지막 확정본: ${esc(confirmedBase().label)}</option>`];
   if (S.hasPrev) opts.unshift('<option value="excel">엑셀의 직전 단가 열</option>');
@@ -509,20 +493,20 @@ function render(){
   $('pages').innerHTML = S.mode === 'grid' ? renderGrid(items) : renderDetail(items);
   const c = {up:0, down:0, new:0};
   items.forEach(i => { if (c[i.state] != null) c[i.state]++; });
-  $('stats').innerHTML = `<span class="chip">품목 ${items.length}</span><span class="chip up">상승 ${c.up}</span><span class="chip down">하락 ${c.down}</span>${c.new?`<span class="chip new">신규 ${c.new}</span>`:''}`;
-  $('pinfo').textContent = `A4 ${$('pages').children.length}장 · ${S.mode==='grid'?'공용 3단':'거래처 상세'}`;
-  $('banner').textContent = S.source === 'example' ? '예시: 홈페이지의 10월 09일 단가에서 몇 개만 바꾼 데이터입니다.' : '';
+  $('stats').innerHTML = `<span class="chip">품목 ${items.length}</span>` + (S.showChg ? `<span class="chip up">상승 ${c.up}</span><span class="chip down">하락 ${c.down}</span>` : '');
+  $('pinfo').textContent = S.mode === 'grid' ? '공용 단가표 1장' : `거래처 상세 · A4 ${$('pages').children.length}장`;
+  $('banner').textContent = S.source === 'example' ? '예시: 11월 09일 단가표를 그대로 옮긴 데이터입니다.' : '';
   $('mGrid').setAttribute('aria-pressed', S.mode === 'grid');
   $('mDetail').setAttribute('aria-pressed', S.mode === 'detail');
-  $('modeHint').textContent = S.mode === 'grid' ? '전체 업체에 보내는 한 장짜리 단가표' : '선별 기준·원산지·비고까지 넣은 거래처별 단가표';
+  $('modeHint').textContent = S.mode === 'grid' ? '전체 거래처에 보내는 3단 단가표 (기존 양식)' : '선별 기준·원산지·비고까지 넣은 거래처별 A4 단가표';
   $('clientGroup').hidden = S.mode !== 'detail';
   $('basis').disabled = !S.showChg;
   fit();
 }
-
 function fit(){
-  const w = $('stage').clientWidth, s = Math.min(1, w / 794);
-  const pages = $('pages');
+  const pages = $('pages'), first = pages.firstElementChild;
+  const pw = first ? first.offsetWidth : 873;
+  const s = Math.min(1, $('stage').clientWidth / pw);
   pages.style.transform = `scale(${s})`;
   $('stage').style.height = (pages.scrollHeight * s) + 'px';
 }
@@ -530,16 +514,13 @@ addEventListener('resize', fit);
 
 function renderHistory(){
   const h = store.get('km.history', []);
-  $('hist').innerHTML = h.length ? h.slice(0, 6).map(x => `<li><span>${esc(x.label)}</span><span>${esc(x.count)}개 품목</span></li>`).join('')
-    : `<li><span>아직 확정한 단가가 없어요. 지금은 ${esc(SITE_BASE.label)}와 비교합니다.</span></li>`;
+  $('hist').innerHTML = h.length ? h.slice(0, 6).map(x => `<li><span>${esc(x.label)}</span><span>${esc(x.count)}개 품목</span></li>`).join('') : '<li><span>아직 확정한 단가가 없어요.</span></li>';
 }
-
 function showMsg(text, err){ const m = $('msg'); m.hidden = false; m.className = 'msg' + (err ? ' err' : ''); m.textContent = text; }
 let tt; function toast(t){ const el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(tt); tt = setTimeout(() => el.hidden = true, 3200); }
+const fmtDateLabel = d => `${String(d.getMonth()+1).padStart(2,'0')}월 ${String(d.getDate()).padStart(2,'0')}일 기준`;
 
-function fmtDateLabel(d){ return `${String(d.getMonth()+1).padStart(2,'0')}월 ${String(d.getDate()).padStart(2,'0')}일 기준`; }
-
-/* ---------- 엑셀 업로드 ---------- */
+/* ===== 엑셀 업로드 ===== */
 async function handleFile(f){
   if (!f) return;
   try{
@@ -549,8 +530,8 @@ async function handleFile(f){
     const wb = XLSX.read(data, {type:'array'});
     const sheets = P.parseWorkbook(wb, XLSX);
     const ok = sheets.filter(s => s.ok && s.items.length);
-    if (!ok.length){ showMsg(`단가표를 찾지 못했습니다. 제목 줄에 ‘품목’과 ‘단가’ 칸이 있는지 확인해 주세요. (${sheets.map(s => s.sheetName + ': ' + (s.reason || '품목 없음')).join(' / ')})`, true); return; }
-    S.sheets = ok; S.fileName = f.name; S.source = 'upload';
+    if (!ok.length){ showMsg(`단가표를 찾지 못했습니다. 제목 줄에 ‘품목’과 ‘단가’ 칸이 있는지 확인해 주세요.`, true); return; }
+    S.sheets = ok; S.source = 'upload';
     $('sheet').innerHTML = ok.map((s, i) => `<option value="${i}">${esc(s.sheetName)} · ${s.items.length}개 품목</option>`).join('');
     $('sheetGroup').hidden = ok.length < 2;
     $('fileName').textContent = '📄 ' + f.name;
@@ -559,8 +540,8 @@ async function handleFile(f){
   }catch(e){ console.error(e); showMsg('파일을 읽지 못했습니다. 엑셀(.xlsx) 파일인지 확인해 주세요.', true); }
 }
 function useSheet(i){
-  const s = S.sheets[i]; S.sheetIdx = i;
-  S.raw = s.items; S.hasPrev = s.hasPrev; S.detailed = s.detailed;
+  const s = S.sheets[i];
+  S.raw = s.items; S.hasPrev = s.hasPrev;
   S.basis = s.hasPrev ? 'excel' : 'saved';
   S.mode = s.detailed ? 'detail' : 'grid';
   if (s.client) S.client = s.client;
@@ -574,7 +555,7 @@ const drop = $('drop');
 ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
 drop.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
-$('sheet').addEventListener('change', e => { useSheet(+e.target.value); showMsg(`${S.sheets[S.sheetIdx].sheetName} 시트로 바꿨습니다.`); });
+$('sheet').addEventListener('change', e => useSheet(+e.target.value));
 $('mGrid').onclick = () => { S.mode = 'grid'; render(); };
 $('mDetail').onclick = () => { S.mode = 'detail'; render(); };
 $('dateLabel').addEventListener('input', e => { S.dateLabel = e.target.value; render(); });
@@ -582,52 +563,58 @@ $('client').addEventListener('input', e => { S.client = e.target.value; render()
 $('showChg').addEventListener('change', e => { S.showChg = e.target.checked; render(); });
 $('basis').addEventListener('change', e => { S.basis = e.target.value; render(); });
 
-/* ---------- 확정 ---------- */
 $('confirmBtn').onclick = () => {
   const items = window.__items || [];
-  const map = Object.fromEntries(items.map(i => [P.norm(i.name), i.now]));
-  const rec = {label: S.dateLabel + (S.mode === 'detail' && S.client ? ` · ${S.client}` : ''), map, count: items.length, at: Date.now()};
+  const rec = {label: S.dateLabel, map: Object.fromEntries(items.map(i => [P.norm(i.name + '|' + i.unit), i.now]).concat(items.map(i => [P.norm(i.name), i.now]))), count: items.length, at: Date.now()};
   const ok = store.set('km.confirmed', rec);
   const h = store.get('km.history', []); h.unshift({label: rec.label, count: rec.count, at: rec.at}); store.set('km.history', h.slice(0, 20));
   renderHistory(); renderBasisSelect(); render();
-  toast(ok ? `${rec.label}으로 확정했습니다. 다음 업로드 때 이 단가와 비교합니다.` : '이 브라우저에서는 저장이 막혀 있어 확정을 기억하지 못합니다.');
+  toast(ok ? `${rec.label}으로 확정했습니다.` : '이 브라우저에서는 저장이 막혀 있어 확정을 기억하지 못합니다.');
 };
 
-/* ---------- PDF 저장 ---------- */
-$('pdfBtn').onclick = async () => {
-  const btn = $('pdfBtn'); btn.disabled = true; btn.textContent = 'PDF 만드는 중…';
-  try{
-    if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    const cap = $('capture'); cap.innerHTML = $('pages').innerHTML;
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({unit:'mm', format:'a4', orientation:'portrait'});
-    const pages = [...cap.querySelectorAll('.page')];
-    for (let i = 0; i < pages.length; i++){
-      pages[i].style.boxShadow = 'none';
-      const canvas = await html2canvas(pages[i], {scale:2.4, backgroundColor:'#ffffff', logging:false});
-      if (i) pdf.addPage();
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.93), 'JPEG', 0, 0, 210, 297);
-    }
-    cap.innerHTML = '';
-    const name = `키친메이트-단가표-${S.dateLabel.replace(/\s|기준/g,'')}${S.mode==='detail'&&S.client?'-'+S.client:''}.pdf`;
-    const blob = pdf.output('blob');
-    await saveFile(name, blob);
-  }catch(e){ console.error(e); if (e && e.code !== 'declined') toast('PDF를 만들지 못했습니다. 다시 시도해 주세요.'); }
-  finally{ btn.disabled = false; btn.textContent = 'PDF로 저장'; }
-};
-async function saveFile(name, blob){
-  if (window.claude && window.claude.use){
-    const dl = await window.claude.use('downloads');
-    if (!dl){ toast('이 화면에서는 파일 저장을 쓸 수 없습니다.'); return; }
-    await dl.save({filename: name, data: blob}); toast('PDF를 저장했습니다.'); return;
+/* ===== 저장 (이미지 / PDF) ===== */
+async function capturePages(){
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+  const cap = $('capture'); cap.innerHTML = $('pages').innerHTML;
+  const out = [];
+  for (const pg of cap.querySelectorAll('.page')){
+    pg.style.boxShadow = 'none';
+    const ex = pg.querySelector('.ex'); if (ex) ex.remove();
+    out.push({canvas: await html2canvas(pg, {scale:2.8, backgroundColor:'#ffffff', logging:false}), w: pg.offsetWidth, h: pg.offsetHeight});
   }
+  cap.innerHTML = '';
+  return out;
+}
+const baseName = () => `키친메이트-단가표-${S.dateLabel.replace(/\s|기준/g,'')}${S.mode==='detail'&&S.client?'-'+S.client:''}`;
+async function withBusy(btn, label, fn){
+  const old = btn.textContent; btn.disabled = true; btn.textContent = label;
+  try{ await fn(); }catch(e){ console.error(e); toast('저장하지 못했습니다. 다시 시도해 주세요.'); }
+  finally{ btn.disabled = false; btn.textContent = old; }
+}
+$('pngBtn').onclick = () => withBusy($('pngBtn'), '만드는 중…', async () => {
+  const pages = await capturePages();
+  for (let i = 0; i < pages.length; i++){
+    const blob = await new Promise(r => pages[i].canvas.toBlob(r, 'image/png'));
+    await saveFile(baseName() + (pages.length > 1 ? `-${i+1}` : '') + '.png', blob);
+  }
+});
+$('pdfBtn').onclick = () => withBusy($('pdfBtn'), '만드는 중…', async () => {
+  const pages = await capturePages();
+  const { jsPDF } = window.jspdf;
+  const mm = p => [210, +(210 * p.h / p.w).toFixed(2)];
+  const pdf = new jsPDF({unit:'mm', format: mm(pages[0]), orientation:'portrait'});
+  pages.forEach((p, i) => { const [w, h] = mm(p); if (i) pdf.addPage([w, h], 'portrait'); pdf.addImage(p.canvas.toDataURL('image/jpeg', 0.94), 'JPEG', 0, 0, w, h); });
+  await saveFile(baseName() + '.pdf', pdf.output('blob'));
+});
+async function saveFile(name, blob){
   const url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000); toast('PDF를 저장했습니다.');
+  setTimeout(() => URL.revokeObjectURL(url), 4000); toast(name + ' 저장 완료');
 }
 
-/* ---------- 시작 ---------- */
 $('dateLabel').value = S.dateLabel;
 renderBasisSelect(); renderHistory(); render();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 </script>
+</body>
+</html>
